@@ -1,0 +1,894 @@
+# Documento de Planejamento — Plataforma VTT Multissistema Inspirada em Roll20 + D&D Beyond
+
+## Visão Geral do Produto
+
+A proposta é construir uma plataforma SaaS de RPG online (“Virtual Tabletop” — VTT) focada inicialmente em:
+
+* Tormenta20
+* Dungeons & Dragons 5ª Edição
+* Shadowrun
+
+Mas com arquitetura preparada para:
+
+* múltiplos sistemas,
+* módulos plugáveis,
+* automação customizável,
+* marketplace,
+* homebrew,
+* APIs públicas,
+* integração com criadores de conteúdo.
+
+A plataforma deverá unir:
+
+* a experiência visual/tática do Roll20,
+* com a experiência de gerenciamento e acessibilidade do D&D Beyond. ([Central de Ajuda Roll20][1])
+
+---
+
+# 1. Objetivos Estratégicos
+
+## Objetivo Principal
+
+Criar uma plataforma cloud-native de RPG online:
+
+* altamente escalável,
+* modular,
+* segura,
+* acessível via navegador,
+* com suporte multiplayer em tempo real.
+
+---
+
+## Diferenciais Competitivos
+
+### 1. Suporte nativo a Tormenta20
+
+Hoje o mercado brasileiro possui carência forte de:
+
+* automação,
+* fichas inteligentes,
+* compêndio integrado,
+* marketplace oficial.
+
+---
+
+### 2. Arquitetura “System Agnostic”
+
+O sistema não deve ser “hardcoded” para D&D.
+
+A engine deve permitir:
+
+* novos sistemas via DSL/configuração,
+* definição de regras,
+* atributos,
+* rolagens,
+* recursos,
+* automações.
+
+---
+
+### 3. Separação Engine x Regras
+
+A plataforma deve possuir:
+
+* engine genérica,
+* módulos de regras plugáveis.
+
+Isso evita acoplamento.
+
+---
+
+### 4. Ecossistema de Criadores
+
+Permitir:
+
+* publicação de módulos,
+* mapas,
+* tokens,
+* aventuras,
+* automações,
+* sistemas independentes.
+
+Inspirado parcialmente no ecossistema de mods/APIs do Roll20. ([Central de Ajuda Roll20][1])
+
+---
+
+# 2. Arquitetura Macro
+
+## Arquitetura Recomendada
+
+### Modelo
+
+Microserviços + Event-Driven Architecture + Real-Time Systems
+
+---
+
+# 3. Componentes da Plataforma
+
+## 3.1 Frontend
+
+### Tecnologias Recomendadas
+
+* React
+* Next.js
+* TypeScript
+* Zustand/Redux
+* WebSocket Client
+* PixiJS ou Phaser
+* TailwindCSS
+
+---
+
+## 3.2 Backend
+
+### Tecnologias Recomendadas
+
+* Node.js (NestJS)
+  OU
+* GoLang (alta concorrência)
+  OU
+* Kotlin/Spring Boot
+
+---
+
+## 3.3 Banco de Dados
+
+### PostgreSQL
+
+Dados relacionais:
+
+* usuários,
+* campanhas,
+* permissões,
+* marketplace,
+* billing.
+
+---
+
+### Redis
+
+* cache,
+* sessões,
+* pub/sub,
+* filas rápidas,
+* presença online.
+
+---
+
+### MongoDB / Document DB
+
+Conteúdo flexível:
+
+* fichas,
+* regras,
+* homebrews,
+* JSON de sistemas.
+
+---
+
+### Object Storage
+
+* S3,
+* Cloudflare R2,
+* MinIO.
+
+Para:
+
+* mapas,
+* imagens,
+* áudio,
+* tokens.
+
+---
+
+# 4. Arquitetura de Domínio
+
+---
+
+# 5. Módulos Principais
+
+## 5.1 Sistema de Contas
+
+### Recursos
+
+* OAuth2
+* Login social
+* MFA
+* Sessão JWT
+* Refresh tokens
+* Controle de dispositivos
+
+---
+
+## 5.2 Sistema de Campanhas
+
+### Entidades
+
+* campanha,
+* mesa,
+* jogador,
+* mestre,
+* observador,
+* personagens,
+* NPCs.
+
+---
+
+## 5.3 Engine de Regras
+
+Este é o núcleo do sistema.
+
+---
+
+## Objetivo
+
+Permitir:
+
+* múltiplos sistemas,
+* automações customizadas,
+* fórmulas configuráveis.
+
+---
+
+## Estrutura Recomendada
+
+### Camada Declarativa
+
+JSON/YAML/DSL
+
+Exemplo:
+
+```json
+{
+  "attribute": "forca",
+  "roll": "1d20 + forca + proficiencia"
+}
+```
+
+---
+
+## Recursos da Engine
+
+### Sistema de Dados
+
+* d20
+* d100
+* pools
+* exploding dice
+* success counting
+
+---
+
+### Sistema de Eventos
+
+Exemplo:
+
+* ON_ATTACK
+* ON_DAMAGE
+* ON_HEAL
+* ON_TURN_START
+
+---
+
+### Sistema de Buffs/Debuffs
+
+Estado reativo:
+
+* vantagens,
+* penalidades,
+* modificadores temporários.
+
+---
+
+### Interpreter Sandbox
+
+Scripts devem rodar isolados.
+
+NUNCA permitir:
+
+* execução arbitrária,
+* acesso ao sistema operacional.
+
+Inspirar-se no modelo de scripts do Roll20, mas com isolamento muito mais robusto. ([Central de Ajuda Roll20][1])
+
+---
+
+# 6. Sistema de Mesa Virtual
+
+## Recursos Essenciais
+
+### Mapas
+
+* grid square/hex
+* layers
+* múltiplos mapas
+* fog of war
+
+---
+
+### Tokens
+
+* movimentação em tempo real,
+* status,
+* auras,
+* HP bars,
+* visão.
+
+---
+
+### Dynamic Lighting
+
+* raycasting,
+* paredes,
+* sombras,
+* LOS (line of sight).
+
+---
+
+### Iniciativa
+
+* tracker em tempo real,
+* automação de turnos.
+
+---
+
+### Chat Integrado
+
+* texto,
+* rolagens,
+* markdown,
+* whispers,
+* macros.
+
+---
+
+### Sistema de Macros
+
+* macros salvas,
+* hotkeys,
+* automações.
+
+---
+
+# 7. Multiplayer em Tempo Real
+
+## Arquitetura Recomendada
+
+### Comunicação
+
+WebSockets
+
+Alternativas:
+
+* Socket.IO
+* Colyseus
+* LiveKit
+
+---
+
+## Modelo
+
+Authoritative Server
+
+O servidor valida:
+
+* movimentação,
+* combate,
+* estado.
+
+NUNCA confiar no cliente.
+
+---
+
+## Sincronização
+
+Event sourcing parcial:
+
+* eventos de combate,
+* movimentação,
+* logs.
+
+---
+
+## Escalabilidade
+
+Horizontal scaling:
+
+* Kubernetes,
+* containers,
+* autoscaling.
+
+---
+
+# 8. Sistema de Fichas
+
+## Conceito
+
+Fichas dinâmicas.
+
+Cada sistema define:
+
+* atributos,
+* recursos,
+* perícias,
+* layout.
+
+---
+
+## Recursos
+
+* drag-and-drop,
+* cálculos automáticos,
+* spell slots,
+* buffs.
+
+---
+
+## Builder Visual
+
+Usuários avançados podem:
+
+* criar sistemas,
+* editar sheets.
+
+---
+
+# 9. Marketplace
+
+## Recursos
+
+Venda/distribuição de:
+
+* campanhas,
+* sistemas,
+* tokens,
+* mapas,
+* módulos,
+* músicas.
+
+---
+
+## Modelo
+
+Revenue share.
+
+---
+
+## DRM Opcional
+
+Permitir:
+
+* conteúdo privado,
+* compartilhado,
+* licenciado.
+
+---
+
+# 10. Homebrew System
+
+Inspirado parcialmente no D&D Beyond. ([PC Gamer][2])
+
+## Recursos
+
+Usuários podem criar:
+
+* classes,
+* magias,
+* talentos,
+* monstros,
+* sistemas.
+
+---
+
+## Workflow
+
+* draft,
+* review,
+* publish.
+
+---
+
+# 11. Arquitetura de Segurança
+
+# 11.1 Princípios
+
+## Zero Trust
+
+Todo request deve:
+
+* autenticar,
+* autorizar,
+* validar.
+
+---
+
+## Least Privilege
+
+Permissões mínimas necessárias.
+
+---
+
+# 11.2 Segurança Aplicacional
+
+## Proteções
+
+* CSRF
+* XSS
+* SQL Injection
+* SSRF
+* Rate limiting
+* WAF
+
+---
+
+## Secrets Management
+
+* Vault
+* AWS Secrets Manager
+
+---
+
+# 11.3 Segurança Multiplayer
+
+## Anti-cheat
+
+Servidor authoritative.
+
+---
+
+## Validação de Dados
+
+Toda rolagem:
+
+* auditável,
+* assinada,
+* logada.
+
+---
+
+# 12. Compliance e LGPD
+
+## 12.1 Adequação LGPD
+
+A plataforma precisa seguir:
+
+* LGPD,
+* GDPR-ready,
+* privacy-by-design.
+
+---
+
+# 12.2 Dados Sensíveis
+
+## Coletar o mínimo possível
+
+Evitar:
+
+* excesso de tracking,
+* dados desnecessários.
+
+---
+
+## Base Legal
+
+* consentimento,
+* execução contratual.
+
+---
+
+# 12.3 Direitos do Usuário
+
+Implementar:
+
+* exportação de dados,
+* exclusão,
+* anonimização,
+* portabilidade.
+
+---
+
+# 12.4 Segurança de Dados
+
+## Criptografia
+
+* TLS 1.3
+* AES-256
+
+---
+
+## Senhas
+
+* Argon2id
+* bcrypt fallback
+
+---
+
+# 12.5 Logs
+
+Logs devem:
+
+* anonimizar IP parcialmente,
+* evitar dados sensíveis.
+
+---
+
+# 13. Governança
+
+# 13.1 Estrutura Recomendada
+
+## Product Governance
+
+* roadmap,
+* priorização,
+* RFCs.
+
+---
+
+## Technical Governance
+
+* arquitetura aprovada,
+* revisão técnica,
+* ADRs.
+
+---
+
+## Security Governance
+
+* pentests,
+* auditorias,
+* SAST/DAST.
+
+---
+
+# 13.2 DevSecOps
+
+Pipeline:
+
+* lint,
+* testes,
+* SCA,
+* secret scanning,
+* IaC scanning.
+
+---
+
+# 14. Observabilidade
+
+## Stack
+
+* Prometheus
+* Grafana
+* Loki
+* OpenTelemetry
+
+---
+
+## Métricas
+
+* latência,
+* sessões,
+* sincronização,
+* erros.
+
+---
+
+# 15. Escalabilidade
+
+## Arquitetura Cloud Native
+
+### Infra
+
+* Kubernetes
+* Docker
+* CDN
+* Edge cache
+
+---
+
+## Estratégia
+
+Separar:
+
+* realtime servers,
+* APIs,
+* assets,
+* processamento.
+
+---
+
+# 16. Modelo de Monetização
+
+## Freemium
+
+### Gratuito
+
+* campanhas limitadas,
+* storage limitado.
+
+---
+
+### Premium
+
+* iluminação dinâmica,
+* automações,
+* storage,
+* APIs.
+
+---
+
+### Marketplace
+
+Revenue share.
+
+---
+
+# 17. APIs Públicas
+
+## Objetivo
+
+Criar ecossistema.
+
+---
+
+## Recursos
+
+* OAuth Apps,
+* Webhooks,
+* SDKs,
+* documentação pública.
+
+---
+
+## API Gateway
+
+* rate limiting,
+* auth,
+* quotas.
+
+---
+
+# 18. Mobile Strategy
+
+## Fase Inicial
+
+Responsivo.
+
+---
+
+## Fase Avançada
+
+Apps:
+
+* iOS,
+* Android.
+
+---
+
+# 19. Roadmap Técnico
+
+# Fase 1 — MVP
+
+## Recursos
+
+* login,
+* campanhas,
+* mapas,
+* tokens,
+* chat,
+* rolagens,
+* fichas básicas.
+
+---
+
+# Fase 2
+
+* iluminação dinâmica,
+* automação,
+* marketplace,
+* compêndio.
+
+---
+
+# Fase 3
+
+* APIs públicas,
+* plugins,
+* mobile,
+* AI tools.
+
+---
+
+# Fase 4
+
+* 3D VTT,
+* voz integrada,
+* streaming.
+
+---
+
+# 20. Arquitetura Recomendada Final
+
+## Frontend
+
+* Next.js
+* TypeScript
+* PixiJS
+
+---
+
+## Backend
+
+* NestJS
+* WebSocket Gateway
+* Redis
+* PostgreSQL
+
+---
+
+## Infra
+
+* Kubernetes
+* AWS/GCP
+* Cloudflare
+
+---
+
+## Segurança
+
+* Zero Trust
+* DevSecOps
+* LGPD-by-design
+
+---
+
+# 21. Riscos Técnicos
+
+## Altíssimo Consumo de Realtime
+
+Mitigação:
+
+* sharding,
+* rooms,
+* event batching.
+
+---
+
+## Complexidade de Regras
+
+Mitigação:
+
+* DSL declarativa,
+* plugins.
+
+---
+
+## Escalabilidade de Assets
+
+Mitigação:
+
+* CDN,
+* object storage.
+
+---
+
+# 22. Diferencial Estratégico Final
+
+O principal diferencial competitivo deveria ser:
+
+## “A primeira plataforma VTT verdadeiramente multissistema da América Latina.”
+
+Com:
+
+* Tormenta20 nativo,
+* arquitetura moderna,
+* marketplace forte,
+* automação avançada,
+* foco em criadores,
+* compliance sólido,
+* UX moderna,
+* APIs abertas.
+
+Isso criaria um posicionamento muito mais forte do que simplesmente “um Roll20 brasileiro”.
+
+[1]: https://help.roll20.net/hc/en-us/articles/360037772833-API-Function-Documentation?utm_source=chatgpt.com "API: Function Documentation – Roll20 Help Center"
+[2]: https://www.pcgamer.com/games/d-and-d-beyonds-official-partner-program-to-add-one-of-the-most-popular-homebrew-classes-which-lets-you-engage-in-fisticuffs-like-a-true-rowdy/?utm_source=chatgpt.com "D&D Beyond's official partner program to add one of the most popular homebrew classes, which lets you engage in fisticuffs like a true rowdy"
