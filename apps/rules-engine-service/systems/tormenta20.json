@@ -1,0 +1,240 @@
+{
+  "system": "tormenta20",
+  "version": "1.0",
+  "name": "Tormenta 20",
+  "publisher": "Editora Jambô",
+  "description": "Sistema de RPG brasileiro baseado em d20",
+
+  "attributes": [
+    { "id": "forca",        "name": "Força",        "abbreviation": "FOR", "min": 1, "max": 30 },
+    { "id": "destreza",     "name": "Destreza",     "abbreviation": "DES", "min": 1, "max": 30 },
+    { "id": "constituicao", "name": "Constituição",  "abbreviation": "CON", "min": 1, "max": 30 },
+    { "id": "inteligencia", "name": "Inteligência",  "abbreviation": "INT", "min": 1, "max": 30 },
+    { "id": "sabedoria",    "name": "Sabedoria",    "abbreviation": "SAB", "min": 1, "max": 30 },
+    { "id": "carisma",      "name": "Carisma",      "abbreviation": "CAR", "min": 1, "max": 30 }
+  ],
+
+  "attribute_modifier_formula": "floor((value - 10) / 2)",
+
+  "resources": [
+    {
+      "id": "pv",
+      "name": "Pontos de Vida",
+      "abbreviation": "PV",
+      "formula": "class_pv_base + (con_mod * level) + race_pv_bonus",
+      "recovery_type": "long_rest"
+    },
+    {
+      "id": "pm",
+      "name": "Pontos de Mana",
+      "abbreviation": "PM",
+      "formula": "class_pm_base + (int_mod * level)",
+      "recovery_type": "long_rest"
+    },
+    {
+      "id": "pv_temp",
+      "name": "PV Temporários",
+      "abbreviation": "PVT",
+      "formula": "0",
+      "recovery_type": "manual"
+    }
+  ],
+
+  "defenses": [
+    {
+      "id": "defesa",
+      "name": "Defesa",
+      "formula": "10 + des_mod + armor_bonus + shield_bonus + misc_bonus",
+      "abbreviation": "DEF"
+    }
+  ],
+
+  "skills": [
+    { "id": "acrobacia",       "name": "Acrobacia",       "attribute": "destreza",     "trained_bonus": 5, "armor_penalty": true },
+    { "id": "adestramento",    "name": "Adestramento",    "attribute": "carisma",      "trained_bonus": 5, "armor_penalty": false },
+    { "id": "atletismo",       "name": "Atletismo",       "attribute": "forca",        "trained_bonus": 5, "armor_penalty": true },
+    { "id": "atuacao",         "name": "Atuação",         "attribute": "carisma",      "trained_bonus": 5, "armor_penalty": false },
+    { "id": "cavalgar",        "name": "Cavalgar",        "attribute": "destreza",     "trained_bonus": 5, "armor_penalty": false },
+    { "id": "conhecimento",    "name": "Conhecimento",    "attribute": "inteligencia", "trained_bonus": 5, "armor_penalty": false },
+    { "id": "cura",            "name": "Cura",            "attribute": "sabedoria",    "trained_bonus": 5, "armor_penalty": false },
+    { "id": "diplomacia",      "name": "Diplomacia",      "attribute": "carisma",      "trained_bonus": 5, "armor_penalty": false },
+    { "id": "enganacao",       "name": "Enganação",       "attribute": "carisma",      "trained_bonus": 5, "armor_penalty": false },
+    { "id": "fortitude",       "name": "Fortitude",       "attribute": "constituicao", "trained_bonus": 5, "armor_penalty": false },
+    { "id": "furtividade",     "name": "Furtividade",     "attribute": "destreza",     "trained_bonus": 5, "armor_penalty": true },
+    { "id": "iniciativa",      "name": "Iniciativa",      "attribute": "destreza",     "trained_bonus": 0, "armor_penalty": false },
+    { "id": "intimidacao",     "name": "Intimidação",     "attribute": "carisma",      "trained_bonus": 5, "armor_penalty": false },
+    { "id": "intuicao",        "name": "Intuição",        "attribute": "sabedoria",    "trained_bonus": 5, "armor_penalty": false },
+    { "id": "investigacao",    "name": "Investigação",    "attribute": "inteligencia", "trained_bonus": 5, "armor_penalty": false },
+    { "id": "jogatina",        "name": "Jogatina",        "attribute": "carisma",      "trained_bonus": 5, "armor_penalty": false },
+    { "id": "ladinagem",       "name": "Ladinagem",       "attribute": "destreza",     "trained_bonus": 5, "armor_penalty": true },
+    { "id": "luta",            "name": "Luta",            "attribute": "forca",        "trained_bonus": 5, "armor_penalty": false },
+    { "id": "misticismo",      "name": "Misticismo",      "attribute": "inteligencia", "trained_bonus": 5, "armor_penalty": false },
+    { "id": "nobreza",         "name": "Nobreza",         "attribute": "inteligencia", "trained_bonus": 5, "armor_penalty": false },
+    { "id": "ocultismo",       "name": "Ocultismo",       "attribute": "inteligencia", "trained_bonus": 5, "armor_penalty": false },
+    { "id": "percepcao",       "name": "Percepção",       "attribute": "sabedoria",    "trained_bonus": 5, "armor_penalty": false },
+    { "id": "pilotagem",       "name": "Pilotagem",       "attribute": "destreza",     "trained_bonus": 5, "armor_penalty": false },
+    { "id": "pontaria",        "name": "Pontaria",        "attribute": "destreza",     "trained_bonus": 5, "armor_penalty": false },
+    { "id": "reflexos",        "name": "Reflexos",        "attribute": "destreza",     "trained_bonus": 5, "armor_penalty": false },
+    { "id": "religiao",        "name": "Religião",        "attribute": "sabedoria",    "trained_bonus": 5, "armor_penalty": false },
+    { "id": "sobrevivencia",   "name": "Sobrevivência",   "attribute": "sabedoria",    "trained_bonus": 5, "armor_penalty": false },
+    { "id": "vontade",         "name": "Vontade",         "attribute": "sabedoria",    "trained_bonus": 5, "armor_penalty": false }
+  ],
+
+  "skill_formula": "attribute_mod + (trained ? trained_bonus : 0) + misc_bonus + (armor_penalty ? -armor_check_penalty : 0)",
+
+  "rolls": {
+    "attack_melee":   "1d20 + attribute_mod(forca) + proficiency + misc",
+    "attack_ranged":  "1d20 + attribute_mod(destreza) + proficiency + misc",
+    "attack_spell":   "1d20 + attribute_mod(inteligencia) + proficiency + misc",
+    "damage":         "weapon_dice + attribute_mod + misc",
+    "skill_check":    "1d20 + skill_total",
+    "initiative":     "1d20 + attribute_mod(destreza)",
+    "saving_throw":   "1d20 + skill_total"
+  },
+
+  "critical": {
+    "threat_range_default": [20],
+    "multiplier_default": 2,
+    "confirmation_roll": "1d20 + attack_bonus"
+  },
+
+  "events": [
+    "ON_ATTACK_ROLL",
+    "ON_ATTACK_HIT",
+    "ON_ATTACK_MISS",
+    "ON_DAMAGE_ROLL",
+    "ON_CRITICAL_HIT",
+    "ON_HEAL",
+    "ON_TURN_START",
+    "ON_TURN_END",
+    "ON_ROUND_START",
+    "ON_CONDITION_APPLY",
+    "ON_CONDITION_REMOVE",
+    "ON_DEATH",
+    "ON_LEVEL_UP",
+    "ON_SPELL_CAST",
+    "ON_PM_SPEND"
+  ],
+
+  "conditions": [
+    {
+      "id": "abalado",
+      "name": "Abalado",
+      "effects": [
+        { "target": "attack_rolls", "modifier": -2, "type": "penalty" },
+        { "target": "skill_checks", "modifier": -2, "type": "penalty" }
+      ]
+    },
+    {
+      "id": "agarrado",
+      "name": "Agarrado",
+      "effects": [
+        { "target": "attack_rolls", "modifier": -2, "type": "penalty" },
+        { "target": "defesa", "modifier": -2, "type": "penalty" },
+        { "target": "movement", "modifier": 0, "type": "set" }
+      ]
+    },
+    {
+      "id": "apavorado",
+      "name": "Apavorado",
+      "effects": [
+        { "target": "attack_rolls", "modifier": -2, "type": "penalty" },
+        { "target": "skill_checks", "modifier": -2, "type": "penalty" },
+        { "target": "saving_throws", "modifier": -2, "type": "penalty" }
+      ]
+    },
+    {
+      "id": "caido",
+      "name": "Caído",
+      "effects": [
+        { "target": "attack_rolls_melee", "modifier": -4, "type": "penalty" },
+        { "target": "defesa_vs_melee", "modifier": -4, "type": "penalty" },
+        { "target": "defesa_vs_ranged", "modifier": 4, "type": "bonus" }
+      ]
+    },
+    {
+      "id": "cego",
+      "name": "Cego",
+      "effects": [
+        { "target": "attack_rolls", "modifier": -5, "type": "penalty" },
+        { "target": "defesa", "modifier": -5, "type": "penalty" },
+        { "target": "perception_visual", "modifier": -999, "type": "penalty" }
+      ]
+    },
+    {
+      "id": "surdo",
+      "name": "Surdo",
+      "effects": [
+        { "target": "perception_auditory", "modifier": -999, "type": "penalty" },
+        { "target": "initiative", "modifier": -4, "type": "penalty" }
+      ]
+    },
+    {
+      "id": "lento",
+      "name": "Lento",
+      "effects": [
+        { "target": "movement", "modifier": 0.5, "type": "multiply" }
+      ]
+    },
+    {
+      "id": "paralisado",
+      "name": "Paralisado",
+      "effects": [
+        { "target": "actions", "modifier": 0, "type": "set" },
+        { "target": "movement", "modifier": 0, "type": "set" },
+        { "target": "defesa", "modifier": -5, "type": "penalty" }
+      ]
+    },
+    {
+      "id": "sangrando",
+      "name": "Sangrando",
+      "effects": [
+        { "target": "pv_per_turn", "modifier": -1, "type": "penalty" }
+      ],
+      "on_turn_end": "take_damage(1)"
+    },
+    {
+      "id": "inconsciente",
+      "name": "Inconsciente",
+      "effects": [
+        { "target": "actions", "modifier": 0, "type": "set" },
+        { "target": "defesa", "modifier": -5, "type": "penalty" }
+      ]
+    }
+  ],
+
+  "xp_thresholds": [
+    { "level": 1,  "xp_required": 0 },
+    { "level": 2,  "xp_required": 1000 },
+    { "level": 3,  "xp_required": 3000 },
+    { "level": 4,  "xp_required": 6000 },
+    { "level": 5,  "xp_required": 10000 },
+    { "level": 6,  "xp_required": 15000 },
+    { "level": 7,  "xp_required": 21000 },
+    { "level": 8,  "xp_required": 28000 },
+    { "level": 9,  "xp_required": 36000 },
+    { "level": 10, "xp_required": 45000 },
+    { "level": 11, "xp_required": 55000 },
+    { "level": 12, "xp_required": 66000 },
+    { "level": 13, "xp_required": 78000 },
+    { "level": 14, "xp_required": 91000 },
+    { "level": 15, "xp_required": 105000 },
+    { "level": 16, "xp_required": 120000 },
+    { "level": 17, "xp_required": 136000 },
+    { "level": 18, "xp_required": 153000 },
+    { "level": 19, "xp_required": 171000 },
+    { "level": 20, "xp_required": 190000 }
+  ],
+
+  "dice_engine": {
+    "standard_dice": ["d4", "d6", "d8", "d10", "d12", "d20", "d100"],
+    "supports_advantage": false,
+    "supports_disadvantage": false,
+    "supports_exploding": true,
+    "supports_success_counting": false,
+    "supports_dice_pools": false,
+    "reroll_notation": "r",
+    "keep_highest_notation": "kh",
+    "keep_lowest_notation": "kl"
+  }
+}

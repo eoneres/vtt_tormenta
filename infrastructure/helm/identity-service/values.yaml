@@ -1,0 +1,104 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/vtt/identity-service
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 3001
+  metricsPort: 9090
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+deployment:
+  strategy: RollingUpdate
+  maxSurge: 1
+  maxUnavailable: 0
+
+livenessProbe:
+  httpGet:
+    path: /v1/auth/health
+    port: 3001
+  initialDelaySeconds: 15
+  periodSeconds: 20
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /v1/auth/health
+    port: 3001
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  failureThreshold: 3
+
+env:
+  NODE_ENV: production
+  PORT: "3001"
+  LOG_LEVEL: info
+  OTEL_ENABLED: "true"
+  OTEL_SERVICE_NAME: identity-service
+  PROMETHEUS_ENABLED: "true"
+  PROMETHEUS_PORT: "9090"
+
+# Secrets are injected via External Secrets Operator from Vault/AWS Secrets Manager
+externalSecrets:
+  enabled: true
+  secretStoreName: vault-backend
+  refreshInterval: 1h
+  secrets:
+    - remoteKey: vtt/identity-service
+      data:
+        - secretKey: JWT_PRIVATE_KEY
+          remoteRef:
+            key: jwt_private_key
+        - secretKey: JWT_PUBLIC_KEY
+          remoteRef:
+            key: jwt_public_key
+        - secretKey: POSTGRES_PASSWORD
+          remoteRef:
+            key: postgres_password
+        - secretKey: REDIS_PASSWORD
+          remoteRef:
+            key: redis_password
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+networkPolicy:
+  enabled: true
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: api-gateway
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: postgres
+    - to:
+        - podSelector:
+            matchLabels:
+              app: redis
+
+serviceMonitor:
+  enabled: true
+  interval: 15s
+  path: /metrics
+  port: metrics

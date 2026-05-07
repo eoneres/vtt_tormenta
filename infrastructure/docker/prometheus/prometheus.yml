@@ -1,0 +1,57 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    environment: development
+    platform: vtt
+
+rule_files:
+  - "rules/*.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: identity-service
+    static_configs:
+      - targets: ['identity-service:9090']
+    metrics_path: /metrics
+
+  - job_name: campaign-service
+    static_configs:
+      - targets: ['campaign-service:9090']
+    metrics_path: /metrics
+
+  - job_name: rules-engine-service
+    static_configs:
+      - targets: ['rules-engine-service:9090']
+    metrics_path: /metrics
+
+  - job_name: vtt-engine-service
+    static_configs:
+      - targets: ['vtt-engine-service:9090']
+    metrics_path: /metrics
+
+  - job_name: realtime-gateway-service
+    static_configs:
+      - targets: ['realtime-gateway-service:9090']
+    metrics_path: /metrics
+
+  - job_name: compendium-service
+    static_configs:
+      - targets: ['compendium-service:9090']
+    metrics_path: /metrics
+
+  - job_name: postgres
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+
+  - job_name: redis
+    static_configs:
+      - targets: ['redis-exporter:9121']

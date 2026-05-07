@@ -1,0 +1,12 @@
+apiVersion: v2
+name: identity-service
+description: VTT Platform — Identity & Authentication Service
+type: application
+version: 0.1.0
+appVersion: "0.0.1"
+keywords:
+  - vtt
+  - identity
+  - auth
+maintainers:
+  - name: VTT Platform Team
