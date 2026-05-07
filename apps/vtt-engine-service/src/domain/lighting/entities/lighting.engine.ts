@@ -1,6 +1,6 @@
 import { generateId } from '@vtt/shared-utils';
 import type { LightSource, Position } from '@vtt/shared-types';
-import { LineOfSightEngine } from '../fog/entities/line-of-sight.engine';
+import { LineOfSightEngine } from '../../fog/entities/line-of-sight.engine';
 import type { Wall } from '@vtt/shared-types';
 
 export interface IlluminatedArea {

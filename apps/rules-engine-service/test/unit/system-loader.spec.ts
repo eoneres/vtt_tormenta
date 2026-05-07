@@ -31,7 +31,11 @@ describe('SystemLoader', () => {
     expect(() => loader.get('unknown-system')).toThrow('System not found: unknown-system');
   });
 
+  it('has() returns true for d&d5e system', () => {
+    expect(loader.has('dnd5e')).toBe(true);
+  });
+
   it('has() returns false for unknown system', () => {
-    expect(loader.has('dnd5e')).toBe(false);
+    expect(loader.has('shadowrun')).toBe(false);
   });
 });

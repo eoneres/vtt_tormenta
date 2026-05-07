@@ -16,6 +16,7 @@
     "@colyseus/monitor": "^0.15.0",
     "@colyseus/redis-presence": "^0.15.0",
     "@colyseus/redis-driver": "^0.15.0",
+    "@colyseus/schema": "^2.0.10",
     "@vtt/shared-events": "workspace:*",
     "@vtt/shared-types": "workspace:*",
     "@vtt/shared-utils": "workspace:*",
