@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import type { Redis } from 'ioredis';
+import { REDIS_CLIENT } from './redis.provider';
 import type { ISessionStore, SessionData } from './session-store.interface';
 
 const SESSION_TTL = 60 * 60 * 24 * 30; // 30 days
@@ -7,7 +8,7 @@ const MFA_PENDING_TTL = 60 * 5; // 5 minutes
 
 @Injectable()
 export class RedisSessionStore implements ISessionStore {
-  constructor(private readonly redis: Redis) {}
+  constructor(@Inject(REDIS_CLIENT) private readonly redis: Redis) {}
 
   async save(session: SessionData): Promise<void> {
     const key = `session:${session.sessionId}`;

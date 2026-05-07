@@ -1,5 +1,5 @@
 import { generateId } from '@vtt/shared-utils';
-import type { UserRole } from '@vtt/shared-types';
+import { UserRole } from '@vtt/shared-types';
 
 export interface UserProps {
   id: string;
@@ -29,13 +29,12 @@ export class UserEntity {
     passwordHash: string;
     roles?: UserRole[];
   }): UserEntity {
-    const { UserRole: Role } = require('@vtt/shared-types') as typeof import('@vtt/shared-types');
     return new UserEntity({
       id: generateId(),
       email: params.email.toLowerCase().trim(),
       displayName: params.displayName.trim(),
       passwordHash: params.passwordHash,
-      roles: params.roles ?? [Role.PLAYER],
+      roles: params.roles ?? [UserRole.PLAYER],
       mfaEnabled: false,
       mfaSecret: null,
       failedLoginAttempts: 0,

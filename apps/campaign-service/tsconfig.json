@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "paths": {
+      "@vtt/shared-types": ["../../packages/shared-types/src"],
+      "@vtt/shared-events": ["../../packages/shared-events/src"],
+      "@vtt/shared-utils": ["../../packages/shared-utils/src"],
+      "@vtt/shared-config": ["../../packages/shared-config/src"],
+      "@vtt/shared-auth": ["../../packages/shared-auth/src"]
+    }
+  },
+  "include": ["src/**/*", "test/**/*", "migrations/**/*"]
+}

@@ -1,10 +1,10 @@
 -- VTT Platform — PostgreSQL Init Script
 -- Creates all databases for each service
 
-CREATE DATABASE vtt_identity;
-CREATE DATABASE vtt_campaign;
-CREATE DATABASE vtt_marketplace;
-CREATE DATABASE vtt_billing;
+SELECT 'CREATE DATABASE vtt_identity' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'vtt_identity')\gexec
+SELECT 'CREATE DATABASE vtt_campaign' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'vtt_campaign')\gexec
+SELECT 'CREATE DATABASE vtt_marketplace' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'vtt_marketplace')\gexec
+SELECT 'CREATE DATABASE vtt_billing' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'vtt_billing')\gexec
 
 -- Grant permissions
 GRANT ALL PRIVILEGES ON DATABASE vtt_identity TO vtt;

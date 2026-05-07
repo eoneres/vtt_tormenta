@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "paths": {
+      "@vtt/shared-types": ["../../packages/shared-types/src"],
+      "@vtt/shared-utils": ["../../packages/shared-utils/src"],
+      "@vtt/shared-config": ["../../packages/shared-config/src"]
+    }
+  },
+  "include": ["src/**/*", "test/**/*"]
+}

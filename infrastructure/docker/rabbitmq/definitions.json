@@ -1,0 +1,111 @@
+{
+  "vhosts": [{ "name": "/" }],
+  "users": [
+    {
+      "name": "vtt",
+      "password": "vtt_dev_password",
+      "tags": "administrator"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "vtt",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "exchanges": [
+    { "name": "identity.events",     "vhost": "/", "type": "topic", "durable": true, "auto_delete": false },
+    { "name": "campaign.events",     "vhost": "/", "type": "topic", "durable": true, "auto_delete": false },
+    { "name": "game.events",         "vhost": "/", "type": "topic", "durable": true, "auto_delete": false },
+    { "name": "billing.events",      "vhost": "/", "type": "topic", "durable": true, "auto_delete": false },
+    { "name": "notification.events", "vhost": "/", "type": "topic", "durable": true, "auto_delete": false },
+    { "name": "dead.letter",         "vhost": "/", "type": "direct", "durable": true, "auto_delete": false }
+  ],
+  "queues": [
+    {
+      "name": "identity.user.registered",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": { "x-dead-letter-exchange": "dead.letter", "x-message-ttl": 86400000 }
+    },
+    {
+      "name": "identity.user.deleted",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": { "x-dead-letter-exchange": "dead.letter" }
+    },
+    {
+      "name": "campaign.created",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": { "x-dead-letter-exchange": "dead.letter" }
+    },
+    {
+      "name": "campaign.table.session_started",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": { "x-dead-letter-exchange": "dead.letter" }
+    },
+    {
+      "name": "game.roll.executed",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": { "x-dead-letter-exchange": "dead.letter", "x-message-ttl": 2592000000 }
+    },
+    {
+      "name": "game.token.moved",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": { "x-dead-letter-exchange": "dead.letter" }
+    },
+    {
+      "name": "billing.subscription.activated",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": { "x-dead-letter-exchange": "dead.letter" }
+    },
+    {
+      "name": "notification.send_email",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": { "x-dead-letter-exchange": "dead.letter", "x-message-ttl": 3600000 }
+    },
+    {
+      "name": "notification.send_push",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": { "x-dead-letter-exchange": "dead.letter", "x-message-ttl": 3600000 }
+    },
+    {
+      "name": "dead.letter.queue",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    { "source": "identity.events",     "vhost": "/", "destination": "identity.user.registered",          "destination_type": "queue", "routing_key": "user.registered",          "arguments": {} },
+    { "source": "identity.events",     "vhost": "/", "destination": "identity.user.deleted",             "destination_type": "queue", "routing_key": "user.deleted",             "arguments": {} },
+    { "source": "campaign.events",     "vhost": "/", "destination": "campaign.created",                  "destination_type": "queue", "routing_key": "campaign.created",         "arguments": {} },
+    { "source": "campaign.events",     "vhost": "/", "destination": "campaign.table.session_started",    "destination_type": "queue", "routing_key": "table.session_started",    "arguments": {} },
+    { "source": "game.events",         "vhost": "/", "destination": "game.roll.executed",                "destination_type": "queue", "routing_key": "roll.executed",            "arguments": {} },
+    { "source": "game.events",         "vhost": "/", "destination": "game.token.moved",                  "destination_type": "queue", "routing_key": "token.moved",              "arguments": {} },
+    { "source": "billing.events",      "vhost": "/", "destination": "billing.subscription.activated",    "destination_type": "queue", "routing_key": "subscription.activated",   "arguments": {} },
+    { "source": "notification.events", "vhost": "/", "destination": "notification.send_email",           "destination_type": "queue", "routing_key": "notification.send_email",  "arguments": {} },
+    { "source": "notification.events", "vhost": "/", "destination": "notification.send_push",            "destination_type": "queue", "routing_key": "notification.send_push",   "arguments": {} },
+    { "source": "dead.letter",         "vhost": "/", "destination": "dead.letter.queue",                 "destination_type": "queue", "routing_key": "#",                        "arguments": {} }
+  ]
+}

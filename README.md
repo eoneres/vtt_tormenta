@@ -90,6 +90,11 @@ docker compose up -d postgres mongodb redis rabbitmq
 cp apps/identity-service/.env.example apps/identity-service/.env.local
 # Editar .env.local com suas chaves
 
+# Rodar migrations do PostgreSQL
+cd apps/identity-service
+pnpm migration:run
+cd ../..
+
 # Build dos pacotes compartilhados
 pnpm turbo run build --filter=@vtt/shared-*
 

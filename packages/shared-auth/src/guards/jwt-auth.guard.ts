@@ -4,7 +4,8 @@ import type { ExecutionContext } from '@nestjs/common';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  override canActivate(context: ExecutionContext) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  override canActivate(context: ExecutionContext): any {
     return super.canActivate(context);
   }
 

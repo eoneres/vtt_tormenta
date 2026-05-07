@@ -11,12 +11,24 @@ import {
   validateEnv,
 } from '@vtt/shared-config';
 import { z } from 'zod';
+
 import { AuthController } from './infrastructure/http/controllers/auth.controller';
+import { UserController } from './infrastructure/http/controllers/user.controller';
+import { JwksController } from './infrastructure/http/controllers/jwks.controller';
+
 import { AuthService } from './application/auth.service';
-import { SESSION_STORE } from './infrastructure/persistence/redis/session-store.interface';
-import { RedisSessionStore } from './infrastructure/persistence/redis/redis-session.store';
-import { AUDIT_LOGGER } from './infrastructure/persistence/postgres/audit-logger.interface';
+import { UserService } from './application/user.service';
+
+import { UserOrmEntity } from './infrastructure/persistence/postgres/user.orm-entity';
+import { AuditLogOrmEntity } from './infrastructure/persistence/postgres/audit-log.orm-entity';
+import { PostgresUserRepository } from './infrastructure/persistence/postgres/postgres-user.repository';
+import { PostgresAuditLogger } from './infrastructure/persistence/postgres/postgres-audit.logger';
 import { USER_REPOSITORY } from './domain/user/repositories/user.repository.interface';
+import { AUDIT_LOGGER } from './infrastructure/persistence/postgres/audit-logger.interface';
+
+import { RedisSessionStore } from './infrastructure/persistence/redis/redis-session.store';
+import { RedisProvider, REDIS_CLIENT } from './infrastructure/persistence/redis/redis.provider';
+import { SESSION_STORE } from './infrastructure/persistence/redis/session-store.interface';
 
 const identityEnvSchema = baseEnvSchema
   .merge(authEnvSchema)
@@ -29,9 +41,11 @@ const identityEnvSchema = baseEnvSchema
       isGlobal: true,
       validate: () => validateEnv(identityEnvSchema),
     }),
+
     ThrottlerModule.forRoot([
       { name: 'default', ttl: 60000, limit: 60 },
     ]),
+
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
@@ -44,6 +58,7 @@ const identityEnvSchema = baseEnvSchema
         },
       }),
     }),
+
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
@@ -54,27 +69,28 @@ const identityEnvSchema = baseEnvSchema
         password: config.getOrThrow<string>('POSTGRES_PASSWORD'),
         database: config.getOrThrow<string>('POSTGRES_DB'),
         ssl: config.get<boolean>('POSTGRES_SSL', false),
-        autoLoadEntities: true,
-        synchronize: false, // Always use migrations in production
+        entities: [UserOrmEntity, AuditLogOrmEntity],
+        migrations: ['dist/migrations/*.js'],
+        migrationsTableName: 'typeorm_migrations',
+        synchronize: false,
         logging: config.get('NODE_ENV') === 'development',
       }),
     }),
+
+    TypeOrmModule.forFeature([UserOrmEntity, AuditLogOrmEntity]),
   ],
-  controllers: [AuthController],
+
+  controllers: [AuthController, UserController, JwksController],
+
   providers: [
     AuthService,
-    {
-      provide: SESSION_STORE,
-      useClass: RedisSessionStore,
-    },
-    {
-      provide: USER_REPOSITORY,
-      useClass: require('./infrastructure/persistence/postgres/postgres-user.repository').PostgresUserRepository,
-    },
-    {
-      provide: AUDIT_LOGGER,
-      useClass: require('./infrastructure/persistence/postgres/postgres-audit.logger').PostgresAuditLogger,
-    },
+    UserService,
+
+    RedisProvider,
+
+    { provide: USER_REPOSITORY, useClass: PostgresUserRepository },
+    { provide: AUDIT_LOGGER, useClass: PostgresAuditLogger },
+    { provide: SESSION_STORE, useClass: RedisSessionStore },
   ],
 })
 export class AppModule {}

@@ -19,7 +19,7 @@ export function generateRequestId(): string {
 // ─── Hashing ─────────────────────────────────────────────────────────────────
 
 export function hashIp(ip: string): string {
-  return createHash('sha256').update(ip + process.env['IP_HASH_SALT'] ?? '').digest('hex').slice(0, 16);
+  return createHash('sha256').update(ip + (process.env['IP_HASH_SALT'] ?? '')).digest('hex').slice(0, 16);
 }
 
 export function hashEmail(email: string): string {
