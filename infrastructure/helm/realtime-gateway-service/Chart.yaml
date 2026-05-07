@@ -1,0 +1,13 @@
+apiVersion: v2
+name: realtime-gateway-service
+description: VTT Platform — Colyseus Realtime WebSocket Gateway
+type: application
+version: 0.1.0
+appVersion: "0.0.1"
+keywords:
+  - vtt
+  - realtime
+  - colyseus
+  - websocket
+maintainers:
+  - name: VTT Platform Team

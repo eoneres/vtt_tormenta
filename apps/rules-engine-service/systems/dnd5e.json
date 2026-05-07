@@ -1,0 +1,331 @@
+{
+  "system": "dnd5e",
+  "version": "1.0",
+  "name": "Dungeons & Dragons 5th Edition",
+  "publisher": "Wizards of the Coast",
+  "description": "The world's greatest roleplaying game, 5th edition",
+
+  "attributes": [
+    { "id": "strength",     "name": "Strength",     "abbreviation": "STR", "min": 1, "max": 30 },
+    { "id": "dexterity",    "name": "Dexterity",    "abbreviation": "DEX", "min": 1, "max": 30 },
+    { "id": "constitution", "name": "Constitution", "abbreviation": "CON", "min": 1, "max": 30 },
+    { "id": "intelligence", "name": "Intelligence", "abbreviation": "INT", "min": 1, "max": 30 },
+    { "id": "wisdom",       "name": "Wisdom",       "abbreviation": "WIS", "min": 1, "max": 30 },
+    { "id": "charisma",     "name": "Charisma",     "abbreviation": "CHA", "min": 1, "max": 30 }
+  ],
+
+  "attribute_modifier_formula": "floor((value - 10) / 2)",
+
+  "proficiency_bonus_formula": "floor((level - 1) / 4) + 2",
+
+  "resources": [
+    {
+      "id": "hp",
+      "name": "Hit Points",
+      "abbreviation": "HP",
+      "formula": "class_hp_base + (con_mod * level)",
+      "recovery_type": "long_rest"
+    },
+    {
+      "id": "hp_temp",
+      "name": "Temporary Hit Points",
+      "abbreviation": "THP",
+      "formula": "0",
+      "recovery_type": "manual"
+    },
+    {
+      "id": "hit_dice",
+      "name": "Hit Dice",
+      "abbreviation": "HD",
+      "formula": "level",
+      "recovery_type": "long_rest"
+    },
+    {
+      "id": "spell_slots_1",
+      "name": "Spell Slots (1st)",
+      "abbreviation": "SS1",
+      "formula": "class_spell_slots_1",
+      "recovery_type": "long_rest"
+    },
+    {
+      "id": "spell_slots_2",
+      "name": "Spell Slots (2nd)",
+      "abbreviation": "SS2",
+      "formula": "class_spell_slots_2",
+      "recovery_type": "long_rest"
+    },
+    {
+      "id": "spell_slots_3",
+      "name": "Spell Slots (3rd)",
+      "abbreviation": "SS3",
+      "formula": "class_spell_slots_3",
+      "recovery_type": "long_rest"
+    }
+  ],
+
+  "defenses": [
+    {
+      "id": "armor_class",
+      "name": "Armor Class",
+      "abbreviation": "AC",
+      "formula": "10 + dex_mod + armor_bonus + shield_bonus + misc_bonus"
+    }
+  ],
+
+  "saving_throws": [
+    { "id": "str_save", "attribute": "strength",     "formula": "str_mod + (str_save_proficient ? proficiency_bonus : 0)" },
+    { "id": "dex_save", "attribute": "dexterity",    "formula": "dex_mod + (dex_save_proficient ? proficiency_bonus : 0)" },
+    { "id": "con_save", "attribute": "constitution", "formula": "con_mod + (con_save_proficient ? proficiency_bonus : 0)" },
+    { "id": "int_save", "attribute": "intelligence", "formula": "int_mod + (int_save_proficient ? proficiency_bonus : 0)" },
+    { "id": "wis_save", "attribute": "wisdom",       "formula": "wis_mod + (wis_save_proficient ? proficiency_bonus : 0)" },
+    { "id": "cha_save", "attribute": "charisma",     "formula": "cha_mod + (cha_save_proficient ? proficiency_bonus : 0)" }
+  ],
+
+  "skills": [
+    { "id": "acrobatics",      "name": "Acrobatics",      "attribute": "dexterity",    "trained_bonus": "proficiency_bonus" },
+    { "id": "animal_handling", "name": "Animal Handling", "attribute": "wisdom",       "trained_bonus": "proficiency_bonus" },
+    { "id": "arcana",          "name": "Arcana",          "attribute": "intelligence", "trained_bonus": "proficiency_bonus" },
+    { "id": "athletics",       "name": "Athletics",       "attribute": "strength",     "trained_bonus": "proficiency_bonus" },
+    { "id": "deception",       "name": "Deception",       "attribute": "charisma",     "trained_bonus": "proficiency_bonus" },
+    { "id": "history",         "name": "History",         "attribute": "intelligence", "trained_bonus": "proficiency_bonus" },
+    { "id": "insight",         "name": "Insight",         "attribute": "wisdom",       "trained_bonus": "proficiency_bonus" },
+    { "id": "intimidation",    "name": "Intimidation",    "attribute": "charisma",     "trained_bonus": "proficiency_bonus" },
+    { "id": "investigation",   "name": "Investigation",   "attribute": "intelligence", "trained_bonus": "proficiency_bonus" },
+    { "id": "medicine",        "name": "Medicine",        "attribute": "wisdom",       "trained_bonus": "proficiency_bonus" },
+    { "id": "nature",          "name": "Nature",          "attribute": "intelligence", "trained_bonus": "proficiency_bonus" },
+    { "id": "perception",      "name": "Perception",      "attribute": "wisdom",       "trained_bonus": "proficiency_bonus" },
+    { "id": "performance",     "name": "Performance",     "attribute": "charisma",     "trained_bonus": "proficiency_bonus" },
+    { "id": "persuasion",      "name": "Persuasion",      "attribute": "charisma",     "trained_bonus": "proficiency_bonus" },
+    { "id": "religion",        "name": "Religion",        "attribute": "intelligence", "trained_bonus": "proficiency_bonus" },
+    { "id": "sleight_of_hand", "name": "Sleight of Hand", "attribute": "dexterity",   "trained_bonus": "proficiency_bonus" },
+    { "id": "stealth",         "name": "Stealth",         "attribute": "dexterity",    "trained_bonus": "proficiency_bonus" },
+    { "id": "survival",        "name": "Survival",        "attribute": "wisdom",       "trained_bonus": "proficiency_bonus" }
+  ],
+
+  "skill_formula": "attribute_mod + (proficient ? proficiency_bonus : 0) + (expertise ? proficiency_bonus : 0) + misc_bonus",
+
+  "rolls": {
+    "attack_melee":   "1d20 + attribute_mod(strength) + proficiency_bonus + misc",
+    "attack_ranged":  "1d20 + attribute_mod(dexterity) + proficiency_bonus + misc",
+    "attack_spell":   "1d20 + spellcasting_mod + proficiency_bonus + misc",
+    "damage":         "weapon_dice + attribute_mod + misc",
+    "skill_check":    "1d20 + skill_total",
+    "saving_throw":   "1d20 + save_total",
+    "initiative":     "1d20 + attribute_mod(dexterity)",
+    "death_save":     "1d20"
+  },
+
+  "advantage_disadvantage": {
+    "advantage":    "roll 2d20 keep highest",
+    "disadvantage": "roll 2d20 keep lowest",
+    "notation_advantage":    "2d20kh1",
+    "notation_disadvantage": "2d20kl1"
+  },
+
+  "critical": {
+    "threat_range_default": [20],
+    "multiplier_default": 2,
+    "rule": "double_dice",
+    "confirmation_roll": null
+  },
+
+  "spell_save_dc_formula": "8 + proficiency_bonus + spellcasting_mod",
+
+  "events": [
+    "ON_ATTACK_ROLL",
+    "ON_ATTACK_HIT",
+    "ON_ATTACK_MISS",
+    "ON_DAMAGE_ROLL",
+    "ON_CRITICAL_HIT",
+    "ON_HEAL",
+    "ON_TURN_START",
+    "ON_TURN_END",
+    "ON_ROUND_START",
+    "ON_CONDITION_APPLY",
+    "ON_CONDITION_REMOVE",
+    "ON_DEATH",
+    "ON_DEATH_SAVE",
+    "ON_LEVEL_UP",
+    "ON_SPELL_CAST",
+    "ON_CONCENTRATION_CHECK",
+    "ON_SHORT_REST",
+    "ON_LONG_REST"
+  ],
+
+  "conditions": [
+    {
+      "id": "blinded",
+      "name": "Blinded",
+      "effects": [
+        { "target": "attack_rolls", "type": "disadvantage" },
+        { "target": "attack_rolls_against", "type": "advantage" }
+      ]
+    },
+    {
+      "id": "charmed",
+      "name": "Charmed",
+      "effects": [
+        { "target": "attack_charmer", "modifier": 0, "type": "prevent" },
+        { "target": "social_checks_by_charmer", "type": "advantage" }
+      ]
+    },
+    {
+      "id": "deafened",
+      "name": "Deafened",
+      "effects": [
+        { "target": "perception_auditory", "modifier": -999, "type": "penalty" }
+      ]
+    },
+    {
+      "id": "exhaustion_1",
+      "name": "Exhaustion (1)",
+      "effects": [
+        { "target": "ability_checks", "type": "disadvantage" }
+      ]
+    },
+    {
+      "id": "frightened",
+      "name": "Frightened",
+      "effects": [
+        { "target": "ability_checks_source_visible", "type": "disadvantage" },
+        { "target": "attack_rolls_source_visible", "type": "disadvantage" }
+      ]
+    },
+    {
+      "id": "grappled",
+      "name": "Grappled",
+      "effects": [
+        { "target": "movement", "modifier": 0, "type": "set" }
+      ]
+    },
+    {
+      "id": "incapacitated",
+      "name": "Incapacitated",
+      "effects": [
+        { "target": "actions", "modifier": 0, "type": "set" },
+        { "target": "reactions", "modifier": 0, "type": "set" }
+      ]
+    },
+    {
+      "id": "invisible",
+      "name": "Invisible",
+      "effects": [
+        { "target": "attack_rolls", "type": "advantage" },
+        { "target": "attack_rolls_against", "type": "disadvantage" }
+      ]
+    },
+    {
+      "id": "paralyzed",
+      "name": "Paralyzed",
+      "effects": [
+        { "target": "actions", "modifier": 0, "type": "set" },
+        { "target": "movement", "modifier": 0, "type": "set" },
+        { "target": "str_save", "type": "auto_fail" },
+        { "target": "dex_save", "type": "auto_fail" },
+        { "target": "attack_rolls_against_5ft", "type": "advantage" },
+        { "target": "attack_rolls_against_critical", "type": "auto_critical" }
+      ]
+    },
+    {
+      "id": "petrified",
+      "name": "Petrified",
+      "effects": [
+        { "target": "actions", "modifier": 0, "type": "set" },
+        { "target": "movement", "modifier": 0, "type": "set" },
+        { "target": "str_save", "type": "auto_fail" },
+        { "target": "dex_save", "type": "auto_fail" },
+        { "target": "damage_resistance", "modifier": 0, "type": "all" }
+      ]
+    },
+    {
+      "id": "poisoned",
+      "name": "Poisoned",
+      "effects": [
+        { "target": "attack_rolls", "type": "disadvantage" },
+        { "target": "ability_checks", "type": "disadvantage" }
+      ]
+    },
+    {
+      "id": "prone",
+      "name": "Prone",
+      "effects": [
+        { "target": "attack_rolls", "type": "disadvantage" },
+        { "target": "attack_rolls_against_5ft", "type": "advantage" },
+        { "target": "attack_rolls_against_ranged", "type": "disadvantage" }
+      ]
+    },
+    {
+      "id": "restrained",
+      "name": "Restrained",
+      "effects": [
+        { "target": "movement", "modifier": 0, "type": "set" },
+        { "target": "attack_rolls", "type": "disadvantage" },
+        { "target": "dex_save", "type": "disadvantage" },
+        { "target": "attack_rolls_against", "type": "advantage" }
+      ]
+    },
+    {
+      "id": "stunned",
+      "name": "Stunned",
+      "effects": [
+        { "target": "actions", "modifier": 0, "type": "set" },
+        { "target": "movement", "modifier": 0, "type": "set" },
+        { "target": "str_save", "type": "auto_fail" },
+        { "target": "dex_save", "type": "auto_fail" },
+        { "target": "attack_rolls_against", "type": "advantage" }
+      ]
+    },
+    {
+      "id": "unconscious",
+      "name": "Unconscious",
+      "effects": [
+        { "target": "actions", "modifier": 0, "type": "set" },
+        { "target": "movement", "modifier": 0, "type": "set" },
+        { "target": "str_save", "type": "auto_fail" },
+        { "target": "dex_save", "type": "auto_fail" },
+        { "target": "attack_rolls_against_5ft", "type": "advantage" },
+        { "target": "attack_rolls_against_critical", "type": "auto_critical" }
+      ]
+    },
+    {
+      "id": "concentration",
+      "name": "Concentrating",
+      "effects": [],
+      "on_damage": "concentration_check"
+    }
+  ],
+
+  "xp_thresholds": [
+    { "level": 1,  "xp_required": 0 },
+    { "level": 2,  "xp_required": 300 },
+    { "level": 3,  "xp_required": 900 },
+    { "level": 4,  "xp_required": 2700 },
+    { "level": 5,  "xp_required": 6500 },
+    { "level": 6,  "xp_required": 14000 },
+    { "level": 7,  "xp_required": 23000 },
+    { "level": 8,  "xp_required": 34000 },
+    { "level": 9,  "xp_required": 48000 },
+    { "level": 10, "xp_required": 64000 },
+    { "level": 11, "xp_required": 85000 },
+    { "level": 12, "xp_required": 100000 },
+    { "level": 13, "xp_required": 120000 },
+    { "level": 14, "xp_required": 140000 },
+    { "level": 15, "xp_required": 165000 },
+    { "level": 16, "xp_required": 195000 },
+    { "level": 17, "xp_required": 225000 },
+    { "level": 18, "xp_required": 265000 },
+    { "level": 19, "xp_required": 305000 },
+    { "level": 20, "xp_required": 355000 }
+  ],
+
+  "dice_engine": {
+    "standard_dice": ["d4", "d6", "d8", "d10", "d12", "d20", "d100"],
+    "supports_advantage": true,
+    "supports_disadvantage": true,
+    "supports_exploding": false,
+    "supports_success_counting": false,
+    "supports_dice_pools": false,
+    "advantage_notation": "2d20kh1",
+    "disadvantage_notation": "2d20kl1"
+  }
+}

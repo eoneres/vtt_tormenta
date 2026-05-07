@@ -125,7 +125,127 @@ services:
       - vtt-internal
     restart: unless-stopped
 
-  # ─── Observability ──────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+      NEXT_PUBLIC_REALTIME_URL: ws://localhost:2567
+    ports:
+      - "3010:3010"
+    depends_on:
+      - api-gateway
+      - realtime-gateway-service
+    networks:
+      - vtt-internal
+    restart: unless-stopped
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: apps/api-gateway/Dockerfile
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      JWKS_URL: http://identity-service:3001/.well-known/jwks.json
+    ports:
+      - "3000:3000"
+    depends_on:
+      - identity-service
+    networks:
+      - vtt-internal
+    restart: unless-stopped
+
+  campaign-service:
+    build:
+      context: .
+      dockerfile: apps/campaign-service/Dockerfile
+    environment:
+      NODE_ENV: development
+      PORT: 3002
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: vtt
+      POSTGRES_PASSWORD: vtt_dev_password
+      POSTGRES_DB: vtt_campaign
+      RABBITMQ_URI: amqp://vtt:vtt_dev_password@rabbitmq:5672
+    ports:
+      - "3002:3002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - vtt-internal
+    restart: unless-stopped
+
+  rules-engine-service:
+    build:
+      context: .
+      dockerfile: apps/rules-engine-service/Dockerfile
+    environment:
+      NODE_ENV: development
+      PORT: 3003
+      DICE_HMAC_SECRET: dev-hmac-secret-change-in-production
+    ports:
+      - "3003:3003"
+    networks:
+      - vtt-internal
+    restart: unless-stopped
+
+  vtt-engine-service:
+    build:
+      context: .
+      dockerfile: apps/vtt-engine-service/Dockerfile
+    environment:
+      NODE_ENV: development
+      PORT: 3004
+      MONGODB_URI: mongodb://vtt:vtt_dev_password@mongodb:27017/vtt_engine?authSource=admin
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: vtt_dev_password
+    ports:
+      - "3004:3004"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - vtt-internal
+    restart: unless-stopped
+
+  realtime-gateway-service:
+    build:
+      context: .
+      dockerfile: apps/realtime-gateway-service/Dockerfile
+    environment:
+      NODE_ENV: development
+      PORT: 2567
+      REDIS_URL: redis://:vtt_dev_password@redis:6379
+      VTT_ENGINE_URL: http://vtt-engine-service:3004
+      RULES_ENGINE_URL: http://rules-engine-service:3003
+      JWKS_URL: http://identity-service:3001/.well-known/jwks.json
+      DICE_HMAC_SECRET: dev-hmac-secret-change-in-production
+      MAX_CLIENTS_PER_ROOM: 8
+      PATCH_RATE_MS: 50
+    ports:
+      - "2567:2567"
+    depends_on:
+      redis:
+        condition: service_healthy
+      vtt-engine-service:
+        condition: service_started
+      rules-engine-service:
+        condition: service_started
+    networks:
+      - vtt-internal
+    restart: unless-stopped
+
+  # ─── Observabilidade ──────────────────────────────────────────────────────────
 
   prometheus:
     image: prom/prometheus:v2.51.0

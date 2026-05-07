@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "realtime-gateway-service.fullname" . }}
+  labels:
+    {{- include "realtime-gateway-service.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  # Sticky sessions required for WebSocket upgrade handshake
+  sessionAffinity: {{ if .Values.sessionAffinity.enabled }}ClientIP{{ else }}None{{ end }}
+  {{- if .Values.sessionAffinity.enabled }}
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: {{ .Values.sessionAffinity.timeoutSeconds }}
+  {{- end }}
+  ports:
+    - name: ws
+      port: {{ .Values.service.port }}
+      targetPort: ws
+      protocol: TCP
+    - name: metrics
+      port: {{ .Values.service.metricsPort }}
+      targetPort: metrics
+      protocol: TCP
+  selector:
+    {{- include "realtime-gateway-service.selectorLabels" . | nindent 4 }}

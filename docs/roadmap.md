@@ -76,44 +76,50 @@ Mesa virtual funcional com Tormenta20 e D&D 5e, fichas automatizadas, chat e rol
   - Eventos para RabbitMQ
 
 #### Mês 2: Rules Engine Service
-- [ ] `apps/rules-engine-service`:
+- [x] `apps/rules-engine-service`:
   - DSL loader: carrega sistema de RPG via JSON
-  - Dice Engine: d4-d100, pools, exploding, success counting, advantage/disadvantage
-  - Formula Evaluator: sandbox segura (vm2 ou isolated-vm)
-  - Event Bus interno: ON_ATTACK, ON_DAMAGE, ON_HEAL, etc.
-  - Buff/Debuff Manager
-  - Condition Tracker
-  - DSL para Tormenta20 completo
-  - DSL para D&D 5e completo
-  - Audit log de todas as rolagens (seed + assinatura)
+  - Dice Engine: d4-d100, pools, exploding, kh/kl, reroll
+  - Formula Evaluator: recursive descent parser (sem eval)
+  - Sandbox segura (Node.js vm module, timeout 100ms)
+  - DSL para Tormenta20 completo (atributos, recursos, defesas, perícias, condições, XP)
+  - DSL para D&D 5e completo (advantage/disadvantage, saving throws, spell slots, condições)
+  - Audit log de rolagens (seed + assinatura HMAC)
 
 #### Mês 3: VTT Engine + Realtime Gateway
-- [ ] `apps/vtt-engine-service`:
+- [x] `apps/vtt-engine-service`:
   - Mapas: grid quadrado e hexagonal, múltiplas layers
   - Fog of War: por token e global
   - Token management: posição, HP bar, auras, status
-  - Ferramentas de medição
   - Iniciativa tracker
-- [ ] `apps/realtime-gateway-service`:
+- [x] `apps/realtime-gateway-service`:
   - Colyseus rooms por mesa
-  - GameRoom com state tipado
-  - Command handlers: MOVE_TOKEN, ROLL_DICE, UPDATE_HP, etc.
-  - Redis Pub/Sub backplane
-  - Reconexão com snapshot de estado
-  - Event batching 50ms
+  - GameRoom com state tipado (Colyseus Schema)
+  - Command handlers: MOVE_TOKEN, ROLL_DICE, UPDATE_HP, APPLY_CONDITION, CHAT_MESSAGE, SET_INITIATIVE, NEXT_TURN, START/END_COMBAT, REVEAL/RESET_FOG
+  - Redis Presence + Driver backplane (multi-node)
+  - Reconexão com snapshot de estado (allowReconnection 30s)
+  - Patch rate 50ms
+  - Validação Zod de todos os comandos
+  - Authoritative server: snap-to-grid, bounds check, GM-only guards
 
 #### Mês 4: Frontend MVP
-- [ ] `apps/frontend`: Next.js 14
-  - Autenticação (login, registro, OAuth, MFA)
-  - Dashboard de campanhas
+- [x] `apps/frontend`: Next.js 14
+  - Autenticação (login, registro, MFA)
+  - Dashboard de campanhas (CRUD)
   - Mesa virtual com PixiJS:
-    - Renderização de mapa
-    - Tokens com drag-and-drop
-    - Fog of War
-    - Chat com rolagens inline
-  - Ficha de personagem Tormenta20 (schema-driven)
-  - Ficha de personagem D&D 5e
-  - Integração WebSocket com realtime-gateway
+    - Renderização de mapa com grid
+    - Tokens com drag-and-drop + snap-to-grid
+    - Fog of War (cut-out de áreas reveladas)
+    - HP bar por token
+    - Seleção de token
+  - Chat com rolagens inline (/r 1d20+5, /me emote)
+  - Ficha de personagem Tormenta20 (schema-driven, rolls integrados)
+  - Ficha de personagem D&D 5e (advantage/disadvantage, spell slots)
+  - Iniciativa tracker com controle de combate
+  - Integração WebSocket com realtime-gateway (Colyseus)
+  - Zustand stores: auth + table state
+  - React Query: campanhas, personagens
+  - Security headers + CSP
+  - Middleware de auth guard
 
 ---
 
