@@ -927,6 +927,6 @@ const doc = new Document({
 });
 
 Packer.toBuffer(doc).then(buf => {
-  fs.writeFileSync("/home/claude/modelagem_vtt.docx", buf);
+  fs.writeFileSync("./modelagem_vtt.docx", buf);
   console.log("DONE");
 });
