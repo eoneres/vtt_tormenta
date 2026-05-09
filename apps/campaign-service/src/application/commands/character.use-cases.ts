@@ -28,7 +28,7 @@ export class CreateCharacterUseCase {
       systemId: campaign.systemId,
       name: cmd.name,
       sheetData: cmd.sheetData,
-    });
+    } as any);
 
     await this.charRepo.save(character);
     return character;

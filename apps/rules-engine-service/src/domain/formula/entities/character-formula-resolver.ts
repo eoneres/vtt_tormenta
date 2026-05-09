@@ -1,4 +1,4 @@
-import { FormulaEvaluator } from '../formula/entities/formula-evaluator';
+import { FormulaEvaluator } from './formula-evaluator';
 import type { SystemDefinition } from '@vtt/shared-types';
 
 export interface CharacterContext {
