@@ -151,7 +151,7 @@ export class GetTableStateUseCase {
     if (!map) throw new NotFoundException('Map not found');
 
     const lights: LightSource[] = [];
-    let fogState = { mode: 'global' as const, revealedAreas: [] };
+    let fogState: any = { mode: 'global' as const, revealedAreas: [] };
 
     // Reveal fog around each visible token (default sight radius = 6 grid cells)
     for (const token of tokens) {

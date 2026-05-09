@@ -22,6 +22,6 @@ export class PostgresAuditLogger implements IAuditLogger {
     record.ipHash = entry.ipHash || null;
     record.metadata = entry.metadata;
     // insert only — never update or delete audit logs
-    await this.repo.insert(record);
+    await this.repo.insert(record as any);
   }
 }

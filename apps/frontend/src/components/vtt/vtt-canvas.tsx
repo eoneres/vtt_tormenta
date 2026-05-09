@@ -4,7 +4,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import * as PIXI from 'pixi.js';
 import { useTableStore } from '@/lib/store/table.store';
 import type { RoomToken, RoomMapState } from '@/lib/colyseus/game-room-client';
-import { COMMANDS } from '../../../lib/colyseus/commands';
+import { COMMANDS } from '../../lib/colyseus/commands';
 
 const GRID_COLOR = 0x2a2d3a;
 const GRID_ALPHA = 0.6;

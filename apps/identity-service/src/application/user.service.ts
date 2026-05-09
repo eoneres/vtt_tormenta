@@ -2,13 +2,13 @@ import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { generateId } from '@vtt/shared-utils';
-import { USER_REPOSITORY } from '../../domain/user/repositories/user.repository.interface';
-import type { IUserRepository } from '../../domain/user/repositories/user.repository.interface';
-import { AUDIT_LOGGER } from '../persistence/postgres/audit-logger.interface';
-import type { IAuditLogger } from '../persistence/postgres/audit-logger.interface';
-import { SESSION_STORE } from '../persistence/redis/session-store.interface';
-import type { ISessionStore } from '../persistence/redis/session-store.interface';
-import { AuditLogOrmEntity } from '../persistence/postgres/audit-log.orm-entity';
+import { USER_REPOSITORY } from '../domain/user/repositories/user.repository.interface';
+import type { IUserRepository } from '../domain/user/repositories/user.repository.interface';
+import { AUDIT_LOGGER } from '../infrastructure/persistence/postgres/audit-logger.interface';
+import type { IAuditLogger } from '../infrastructure/persistence/postgres/audit-logger.interface';
+import { SESSION_STORE } from '../infrastructure/persistence/redis/session-store.interface';
+import type { ISessionStore } from '../infrastructure/persistence/redis/session-store.interface';
+import { AuditLogOrmEntity } from '../infrastructure/persistence/postgres/audit-log.orm-entity';
 
 export interface UserProfileResponse {
   id: string;
