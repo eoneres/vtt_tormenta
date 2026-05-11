@@ -1,19 +1,23 @@
+import { Inject } from '@nestjs/common';
 import {
-  Controller, Get, Post, Put, Delete, Patch,
+  Controller, Get, Post, Patch,
   Body, Param, Query, Headers, HttpCode, HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { MarketplaceListing } from '../../../domain/listing/entities/marketplace-listing.entity';
+import {
+  IMarketplaceListingRepository,
+  MARKETPLACE_LISTING_REPOSITORY,
+} from '../../../domain/listing/repositories/marketplace-listing.repository';
 import type { ListingCategory, PricingModel } from '../../../domain/listing/entities/marketplace-listing.entity';
-
-// ─── In-memory store (replace with PostgreSQL in production) ─────────────────
-const store = new Map<string, MarketplaceListing>();
-
-// ─── Controller ───────────────────────────────────────────────────────────────
 
 @ApiTags('Marketplace')
 @Controller('v1/marketplace')
 export class MarketplaceController {
+  constructor(
+    @Inject(MARKETPLACE_LISTING_REPOSITORY)
+    private readonly repository: IMarketplaceListingRepository,
+  ) {}
 
   // ─── Public browsing ──────────────────────────────────────────────────
 
@@ -25,7 +29,7 @@ export class MarketplaceController {
   @ApiQuery({ name: 'q', required: false })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'offset', required: false, type: Number })
-  browse(
+  async browse(
     @Query('system') system?: string,
     @Query('category') category?: string,
     @Query('pricing') pricing?: string,
@@ -33,47 +37,46 @@ export class MarketplaceController {
     @Query('limit') limit = 20,
     @Query('offset') offset = 0,
   ) {
-    let listings = Array.from(store.values()).filter((l) => l.status === 'approved');
+    const result = await this.repository.findApproved(
+      { limit: Number(limit), offset: Number(offset) },
+      { system, category, pricingModel: pricing as any, query: q },
+    );
 
-    if (system) listings = listings.filter((l) => l.system === system);
-    if (category) listings = listings.filter((l) => l.category === category);
-    if (pricing) listings = listings.filter((l) => l.pricingModel === pricing);
-    if (q) {
-      const lower = q.toLowerCase();
-      listings = listings.filter((l) =>
-        l.title.toLowerCase().includes(lower) ||
-        l.description.toLowerCase().includes(lower) ||
-        l.tags.some((t) => t.includes(lower)),
-      );
-    }
-
-    const total = listings.length;
-    const page = listings.slice(+offset, +offset + +limit).map((l) => ({
-      id: l.id, title: l.title, slug: l.slug, shortDescription: l.shortDescription,
-      category: l.category, system: l.system, pricingModel: l.pricingModel,
-      priceDisplay: l.priceForDisplay, coverImageUrl: l.coverImageUrl,
-      downloadCount: l.downloadCount, averageRating: l.averageRating,
-      reviewCount: l.reviews.length, creatorId: l.creatorId, publishedAt: l.publishedAt,
+    const listings = result.items.map((l) => ({
+      id: l.id,
+      title: l.title,
+      slug: l.slug,
+      shortDescription: l.shortDescription,
+      category: l.category,
+      system: l.system,
+      pricingModel: l.pricingModel,
+      priceDisplay: l.priceForDisplay,
+      coverImageUrl: l.coverImageUrl,
+      downloadCount: l.downloadCount,
+      averageRating: l.averageRating,
+      reviewCount: l.reviews.length,
+      creatorId: l.creatorId,
+      publishedAt: l.publishedAt,
     }));
 
-    return { listings: page, total, hasMore: total > +offset + +limit };
+    return { listings, total: result.total, hasMore: result.total > Number(offset) + Number(limit) };
   }
 
   @Get('listings/:slug')
   @ApiOperation({ summary: 'Get listing detail by slug' })
-  getBySlug(@Param('slug') slug: string) {
-    const listing = Array.from(store.values()).find((l) => l.slug === slug && l.status === 'approved');
+  async getBySlug(@Param('slug') slug: string) {
+    const listing = await this.repository.findBySlug(slug);
     if (!listing) return { statusCode: 404, message: 'Listing not found' };
     return listing.toPlainObject();
   }
 
-  // ─── Creator endpoints ────────────────────────────────────────────────
+  // ─── Creator endpoints ──────────────────────────────────────────────────
 
   @Post('listings')
   @ApiBearerAuth()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new marketplace listing (draft)' })
-  create(
+  async create(
     @Body() body: {
       title: string; description: string; shortDescription?: string;
       category: ListingCategory; system: string;
@@ -96,37 +99,53 @@ export class MarketplaceController {
       version: body.version ?? '1.0.0',
       assets: [],
     });
-    store.set(listing.id, listing);
+
+    await this.repository.save(listing);
     return listing.toPlainObject();
   }
 
   @Get('my-listings')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all listings by the authenticated creator' })
-  myListings(@Headers('x-user-id') userId: string) {
-    const listings = Array.from(store.values())
-      .filter((l) => l.creatorId === userId)
-      .map((l) => ({
-        id: l.id, title: l.title, status: l.status, pricingModel: l.pricingModel,
-        priceDisplay: l.priceForDisplay, downloadCount: l.downloadCount,
-        purchaseCount: l.purchaseCount, totalRevenueCentavos: l.totalRevenueCentavos,
-        averageRating: l.averageRating, reviewCount: l.reviews.length,
-        updatedAt: l.updatedAt,
-      }));
-    return { listings, total: listings.length };
+  async myListings(
+    @Headers('x-user-id') userId: string,
+    @Query('limit') limit = 50,
+    @Query('offset') offset = 0,
+  ) {
+    const result = await this.repository.findByCreator(userId, {
+      limit: Number(limit),
+      offset: Number(offset),
+    });
+
+    const listings = result.items.map((l) => ({
+      id: l.id,
+      title: l.title,
+      status: l.status,
+      pricingModel: l.pricingModel,
+      priceDisplay: l.priceForDisplay,
+      downloadCount: l.downloadCount,
+      purchaseCount: l.purchaseCount,
+      totalRevenueCentavos: l.totalRevenueCentavos,
+      averageRating: l.averageRating,
+      reviewCount: l.reviews.length,
+      updatedAt: l.updatedAt,
+    }));
+
+    return { listings, total: result.total };
   }
 
   @Post('listings/:id/submit')
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Submit listing for review' })
-  submit(
+  async submit(
     @Param('id') id: string,
     @Headers('x-user-id') userId: string,
   ) {
-    const listing = store.get(id);
+    const listing = await this.repository.findById(id);
     if (!listing || listing.creatorId !== userId) return { statusCode: 403, message: 'Forbidden' };
     listing.submitForReview();
+    await this.repository.save(listing);
     return { status: listing.status };
   }
 
@@ -136,13 +155,14 @@ export class MarketplaceController {
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Approve a listing (admin)' })
-  approve(
+  async approve(
     @Param('id') id: string,
     @Body('reviewNote') reviewNote?: string,
   ) {
-    const listing = store.get(id);
+    const listing = await this.repository.findById(id);
     if (!listing) return { statusCode: 404, message: 'Not found' };
     listing.approve(reviewNote);
+    await this.repository.save(listing);
     return { status: listing.status, publishedAt: listing.publishedAt };
   }
 
@@ -150,13 +170,14 @@ export class MarketplaceController {
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Reject a listing (admin)' })
-  reject(
+  async reject(
     @Param('id') id: string,
     @Body('reviewNote') reviewNote: string,
   ) {
-    const listing = store.get(id);
+    const listing = await this.repository.findById(id);
     if (!listing) return { statusCode: 404, message: 'Not found' };
     listing.reject(reviewNote);
+    await this.repository.save(listing);
     return { status: listing.status, reviewNote: listing.reviewNote };
   }
 
@@ -166,14 +187,15 @@ export class MarketplaceController {
   @ApiBearerAuth()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Submit a review for a listing' })
-  addReview(
+  async addReview(
     @Param('id') id: string,
     @Body() body: { rating: 1|2|3|4|5; title?: string; body?: string },
     @Headers('x-user-id') userId: string,
   ) {
-    const listing = store.get(id);
+    const listing = await this.repository.findById(id);
     if (!listing || listing.status !== 'approved') return { statusCode: 404, message: 'Not found' };
     const review = listing.addReview({ reviewerId: userId, ...body });
+    await this.repository.save(listing);
     return review;
   }
 
@@ -181,9 +203,8 @@ export class MarketplaceController {
 
   @Get('stats')
   @ApiOperation({ summary: 'Marketplace aggregate statistics' })
-  stats() {
-    const all = Array.from(store.values());
-    const approved = all.filter((l) => l.status === 'approved');
+  async stats() {
+    const approved = await this.repository.findAllApproved();
     return {
       totalListings: approved.length,
       freeListings: approved.filter((l) => l.pricingModel === 'free').length,
