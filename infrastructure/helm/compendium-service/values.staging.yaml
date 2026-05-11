@@ -1,0 +1,21 @@
+replicaCount: 1
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 300m
+    memory: 256Mi
+
+autoscaling:
+  enabled: false
+
+env:
+  NODE_ENV: staging
+  LOG_LEVEL: debug
+  SEED_ON_BOOT: "true"
+  CACHE_TTL_SECONDS: "60"
+
+podDisruptionBudget:
+  enabled: false

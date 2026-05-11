@@ -1,0 +1,93 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/vtt/compendium-service
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 3040
+  metricsPort: 9090
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+deployment:
+  strategy: RollingUpdate
+  maxSurge: 1
+  maxUnavailable: 0
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 3040
+  initialDelaySeconds: 20
+  periodSeconds: 30
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health/ready
+    port: 3040
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  failureThreshold: 3
+
+env:
+  NODE_ENV: production
+  COMPENDIUM_PORT: "3040"
+  LOG_LEVEL: info
+  SEED_ON_BOOT: "false"
+  CACHE_TTL_SECONDS: "300"
+  SEARCH_RESULTS_LIMIT: "50"
+
+envFromSecrets:
+  - name: MONGODB_URI
+    secretName: compendium-secrets
+    secretKey: mongodb-uri
+  - name: REDIS_URL
+    secretName: compendium-secrets
+    secretKey: redis-url
+  - name: JWT_PUBLIC_KEY_PATH
+    secretName: compendium-secrets
+    secretKey: jwt-public-key-path
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "9090"
+  prometheus.io/path: "/metrics"
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+nodeSelector: {}
+tolerations: []
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - compendium-service
+          topologyKey: kubernetes.io/hostname
+
+ingress:
+  enabled: false  # Exposed via API Gateway only

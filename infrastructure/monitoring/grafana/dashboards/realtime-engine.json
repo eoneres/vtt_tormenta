@@ -1,0 +1,109 @@
+{
+  "title": "VTT Realtime Engine",
+  "uid": "vtt-realtime",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-30m", "to": "now" },
+  "tags": ["vtt", "realtime", "colyseus"],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Active Tables",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 },
+      "targets": [{ "expr": "colyseus_rooms_active", "legendFormat": "Tables" }],
+      "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color":"green","value":0},{"color":"yellow","value":80},{"color":"red","value":120}] } } }
+    },
+    {
+      "id": 2,
+      "title": "Connected Players",
+      "type": "stat",
+      "gridPos": { "x": 4, "y": 0, "w": 4, "h": 4 },
+      "targets": [{ "expr": "colyseus_clients_connected", "legendFormat": "Players" }],
+      "fieldConfig": { "defaults": { "unit": "short" } }
+    },
+    {
+      "id": 3,
+      "title": "Messages/s",
+      "type": "stat",
+      "gridPos": { "x": 8, "y": 0, "w": 4, "h": 4 },
+      "targets": [{ "expr": "sum(rate(colyseus_messages_total[1m]))", "legendFormat": "msg/s" }],
+      "fieldConfig": { "defaults": { "unit": "msgps" } }
+    },
+    {
+      "id": 4,
+      "title": "State Sync P95",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 0, "w": 4, "h": 4 },
+      "targets": [{ "expr": "histogram_quantile(0.95, rate(colyseus_patch_broadcast_duration_seconds_bucket[5m])) * 1000", "legendFormat": "P95 ms" }],
+      "fieldConfig": { "defaults": { "unit": "ms", "thresholds": { "steps": [{"color":"green","value":0},{"color":"yellow","value":50},{"color":"red","value":100}] } } }
+    },
+    {
+      "id": 5,
+      "title": "Dice Rolls/min",
+      "type": "stat",
+      "gridPos": { "x": 16, "y": 0, "w": 4, "h": 4 },
+      "targets": [{ "expr": "sum(rate(vtt_dice_rolls_total[1m])) * 60", "legendFormat": "rolls/min" }],
+      "fieldConfig": { "defaults": { "unit": "short" } }
+    },
+    {
+      "id": 6,
+      "title": "Token Move Events/min",
+      "type": "stat",
+      "gridPos": { "x": 20, "y": 0, "w": 4, "h": 4 },
+      "targets": [{ "expr": "sum(rate(vtt_token_moves_total[1m])) * 60", "legendFormat": "moves/min" }],
+      "fieldConfig": { "defaults": { "unit": "short" } }
+    },
+    {
+      "id": 7,
+      "title": "State Sync Latency Distribution",
+      "type": "heatmap",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "sum(rate(colyseus_patch_broadcast_duration_seconds_bucket[1m])) by (le)", "legendFormat": "{{le}}", "format": "heatmap" }
+      ],
+      "options": { "calculate": false, "yAxis": { "unit": "s" } }
+    },
+    {
+      "id": 8,
+      "title": "Active Rooms Over Time",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "colyseus_rooms_active", "legendFormat": "Active Rooms" },
+        { "expr": "colyseus_rooms_creating", "legendFormat": "Creating" },
+        { "expr": "colyseus_rooms_disposing", "legendFormat": "Disposing" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" } }
+    },
+    {
+      "id": 9,
+      "title": "Automations Fired/min",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 12, "w": 8, "h": 6 },
+      "targets": [
+        { "expr": "sum(rate(vtt_automations_fired_total[1m])) * 60 by (trigger_type)", "legendFormat": "{{trigger_type}}" }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Connection Errors/min",
+      "type": "timeseries",
+      "gridPos": { "x": 8, "y": 12, "w": 8, "h": 6 },
+      "targets": [
+        { "expr": "rate(colyseus_connection_errors_total[1m]) * 60", "legendFormat": "Errors/min" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "color": { "fixedColor": "red", "mode": "fixed" } } }
+    },
+    {
+      "id": 11,
+      "title": "Fog of War Updates/s",
+      "type": "timeseries",
+      "gridPos": { "x": 16, "y": 12, "w": 8, "h": 6 },
+      "targets": [
+        { "expr": "rate(vtt_fog_updates_total[1m])", "legendFormat": "Fog Updates/s" }
+      ]
+    }
+  ]
+}

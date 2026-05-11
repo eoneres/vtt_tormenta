@@ -46,7 +46,7 @@ export class GameRoom extends Room<GameRoomState> {
 
   // ─── Lifecycle ─────────────────────────────────────────────────────────────
 
-  override onCreate(options: { env: RealtimeEnv }): void {
+  onCreate(options: { env: RealtimeEnv }): void {
     this.env = options.env;
     this.serviceClient = new ServiceClient(
       this.env.VTT_ENGINE_URL,
@@ -65,7 +65,7 @@ export class GameRoom extends Room<GameRoomState> {
     });
   }
 
-  override async onJoin(client: Client, options: JoinOptions): Promise<void> {
+  async onJoin(client: Client, options: JoinOptions): Promise<void> {
     const { tableId, campaignId, mapId, userId, displayName } = options;
 
     // First client becomes GM if gmId not set
@@ -85,7 +85,7 @@ export class GameRoom extends Room<GameRoomState> {
     this.broadcastSystemMessage(`${displayName} entrou na mesa.`);
   }
 
-  override onLeave(client: Client, consented: boolean): void {
+  onLeave(client: Client, consented: boolean): void {
     const { displayName } = client.userData as { userId: string; displayName: string };
     this.state.players.delete(client.sessionId);
     this.broadcastSystemMessage(`${displayName} saiu da mesa.`);
@@ -98,7 +98,7 @@ export class GameRoom extends Room<GameRoomState> {
     }
   }
 
-  override onDispose(): void {
+  onDispose(): void {
     // State persisted via vtt-engine-service; nothing to flush here
   }
 

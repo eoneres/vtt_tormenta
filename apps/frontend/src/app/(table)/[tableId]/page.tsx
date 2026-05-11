@@ -8,16 +8,16 @@ import { useAuthStore } from '@/lib/store/auth.store';
 import { ChatPanel } from '@/components/chat/chat-panel';
 import { InitiativePanel } from '@/components/initiative/initiative-panel';
 import { SheetPanel } from '@/components/sheet/sheet-panel';
+import CompendiumPanel from '@/components/compendium/CompendiumPanel';
 import { COMMANDS } from '@/lib/colyseus/commands';
 import { clsx } from 'clsx';
 
-// PixiJS must be client-only — no SSR
 const VttCanvas = dynamic(
   () => import('@/components/vtt/vtt-canvas').then((m) => ({ default: m.VttCanvas })),
   { ssr: false, loading: () => <div className="w-full h-full bg-vtt-bg animate-pulse" /> },
 );
 
-type Panel = 'chat' | 'initiative' | 'sheet' | null;
+type Panel = 'chat' | 'initiative' | 'sheet' | 'compendium' | null;
 
 function Toolbar() {
   const { toolMode, setToolMode, client, roomState } = useTableStore();
@@ -25,10 +25,15 @@ function Toolbar() {
   const isGm = roomState?.gmId === user?.id;
 
   const tools = [
-    { id: 'select', icon: '↖', label: 'Selecionar' },
-    { id: 'measure', icon: '📏', label: 'Medir' },
-    { id: 'ping', icon: '📍', label: 'Ping' },
-    ...(isGm ? [{ id: 'draw_wall', icon: '🧱', label: 'Parede' }] : []),
+    { id: 'select',         icon: '↖',  label: 'Selecionar (S)' },
+    { id: 'measure',        icon: '📏', label: 'Medir Distância (M)' },
+    { id: 'measure_circle', icon: '⭕', label: 'Medir Área Circular' },
+    { id: 'measure_cone',   icon: '🔺', label: 'Medir Cone (60°)' },
+    { id: 'ping',           icon: '📍', label: 'Marcar Ponto' },
+    ...(isGm ? [
+      { id: 'draw_wall',    icon: '🧱', label: 'Desenhar Parede' },
+      { id: 'draw_door',    icon: '🚪', label: 'Adicionar Porta' },
+    ] : []),
   ] as const;
 
   return (
@@ -60,9 +65,10 @@ function PanelToggleBar({
   onToggle: (p: Panel) => void;
 }) {
   const buttons: Array<{ id: Panel; label: string; icon: string }> = [
-    { id: 'chat', label: 'Chat', icon: '💬' },
+    { id: 'chat',       label: 'Chat',       icon: '💬' },
     { id: 'initiative', label: 'Iniciativa', icon: '⚔️' },
-    { id: 'sheet', label: 'Ficha', icon: '📋' },
+    { id: 'sheet',      label: 'Ficha',      icon: '📋' },
+    { id: 'compendium', label: 'Compêndio',  icon: '📚' },
   ];
 
   return (
@@ -192,10 +198,13 @@ export default function TablePage() {
 
         {/* Side panel */}
         {activePanel && (
-          <div className="w-72 shrink-0 panel">
+          <div className="w-72 shrink-0 panel overflow-hidden flex flex-col">
             {activePanel === 'chat' && <ChatPanel />}
             {activePanel === 'initiative' && <InitiativePanel />}
             {activePanel === 'sheet' && <SheetPanel />}
+            {activePanel === 'compendium' && (
+              <CompendiumPanel defaultSystem="tormenta20" className="flex-1 overflow-hidden" />
+            )}
           </div>
         )}
       </div>

@@ -20,6 +20,11 @@
       "dependsOn": ["^build"],
       "outputs": ["coverage/**"]
     },
+    "test:integration": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "env": ["NODE_ENV", "MONGODB_URI", "REDIS_URL", "DATABASE_URL"]
+    },
     "lint": {
       "outputs": []
     },
@@ -29,6 +34,12 @@
     },
     "clean": {
       "cache": false
+    },
+    "seed": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "env": ["MONGODB_URI", "SEED_ON_BOOT"]
     }
   }
 }
+

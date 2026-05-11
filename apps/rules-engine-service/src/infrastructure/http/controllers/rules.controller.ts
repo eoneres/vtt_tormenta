@@ -27,12 +27,7 @@ export class RollsController {
       return { statusCode: 404, error: 'Not Found', message: `System not found: ${dto.systemId}` };
     }
     return this.diceEngine.roll(
-      {
-        notation: dto.notation,
-        systemId: dto.systemId,
-        characterId: dto.characterId,
-        context: dto.context
-      } as any,
+      { notation: dto.notation, systemId: dto.systemId, characterId: dto.characterId, context: dto.context },
       userId ?? 'anonymous',
     );
   }

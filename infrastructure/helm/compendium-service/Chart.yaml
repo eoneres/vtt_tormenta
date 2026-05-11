@@ -1,0 +1,14 @@
+apiVersion: v2
+name: compendium-service
+description: VTT Platform — Compendium Service (races, classes, spells, monsters, homebrew)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - vtt
+  - compendium
+  - tormenta20
+  - dnd5e
+home: https://github.com/your-org/vtt-tormenta
+maintainers:
+  - name: VTT Platform Team

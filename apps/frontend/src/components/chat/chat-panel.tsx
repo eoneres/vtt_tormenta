@@ -20,7 +20,7 @@ function RollResult({ data }: { data: RoomChatMessage['rollData'] }) {
 
 function ChatBubble({ msg, isOwn }: { msg: RoomChatMessage; isOwn: boolean }) {
   const rollData = msg.rollData
-    ? (JSON.parse(msg.rollData as any) as RoomChatMessage['rollData'])
+    ? (JSON.parse(msg.rollData) as RoomChatMessage['rollData'])
     : undefined;
 
   if (msg.type === 'system') {

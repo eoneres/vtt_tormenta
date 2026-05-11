@@ -40,7 +40,7 @@ import { EXCHANGES } from '@vtt/shared-events';
         ssl: cfg.get<boolean>('POSTGRES_SSL') ? { rejectUnauthorized: false } : false,
         entities: [CampaignOrmEntity, CharacterOrmEntity, TableOrmEntity],
         synchronize: false,
-      } as any),
+      }),
     }),
     TypeOrmModule.forFeature([CampaignOrmEntity, CharacterOrmEntity, TableOrmEntity]),
     RabbitMQModule.forRootAsync(RabbitMQModule, {

@@ -4,13 +4,18 @@ import { useEffect, useRef, useCallback } from 'react';
 import * as PIXI from 'pixi.js';
 import { useTableStore } from '@/lib/store/table.store';
 import type { RoomToken, RoomMapState } from '@/lib/colyseus/game-room-client';
-import { COMMANDS } from '../../lib/colyseus/commands';
+import { COMMANDS } from '../../../lib/colyseus/commands';
+import { LightingRenderer } from './lighting-renderer';
+import { FogOfWarRenderer } from './fog-renderer';
+import { MeasurementTool } from './measurement-tool';
 
 const GRID_COLOR = 0x2a2d3a;
 const GRID_ALPHA = 0.6;
 const FOG_COLOR = 0x000000;
 const FOG_ALPHA = 0.85;
 const TOKEN_SELECTED_TINT = 0x7c3aed;
+const GRID_SIZE_PX = 70;
+const CELL_REAL_M = 1.5; // Tormenta20: 1 square = 1.5m
 
 interface TokenSprite extends PIXI.Container {
   tokenId: string;
@@ -30,6 +35,11 @@ export function VttCanvas() {
     ui: PIXI.Container;
   } | null>(null);
   const tokenSpritesRef = useRef<Map<string, TokenSprite>>(new Map());
+
+  // ─── Fase 02: Advanced renderers ──────────────────────────────────────────
+  const lightingRendererRef = useRef<LightingRenderer | null>(null);
+  const fogRendererRef = useRef<FogOfWarRenderer | null>(null);
+  const measurementToolRef = useRef<MeasurementTool | null>(null);
 
   const { roomState, client, selectedTokenId, selectToken, toolMode, showFog } = useTableStore();
 
@@ -57,6 +67,26 @@ export function VttCanvas() {
     app.stage.addChild(background, grid, tokens, fog, ui);
     layersRef.current = { background, grid, tokens, fog, ui };
 
+    // ─── Fase 02: Initialize advanced renderers ──────────────────────────
+    const lightingRenderer = new LightingRenderer();
+    lightingRendererRef.current = lightingRenderer;
+
+    const fogRenderer = new FogOfWarRenderer();
+    fogRendererRef.current = fogRenderer;
+
+    const measureTool = new MeasurementTool({
+      gridSize: GRID_SIZE_PX,
+      cellRealSize: CELL_REAL_M,
+      lineColor: 0x7c3aed,
+      fillColor: 0x7c3aed,
+    });
+    measurementToolRef.current = measureTool;
+
+    // Insert lighting and advanced fog between fog layer and ui
+    app.stage.addChildAt(lightingRenderer.getContainer(), app.stage.getChildIndex(fog));
+    app.stage.addChildAt(fogRenderer.getContainer(), app.stage.getChildIndex(fog) + 1);
+    app.stage.addChild(measureTool.getContainer());
+
     // Viewport pan with middle mouse / right click
     let isPanning = false;
     let panStart = { x: 0, y: 0 };
@@ -72,12 +102,33 @@ export function VttCanvas() {
     });
 
     app.stage.on('pointermove', (e: PIXI.FederatedPointerEvent) => {
-      if (!isPanning) return;
-      app.stage.x = stageStart.x + (e.globalX - panStart.x);
-      app.stage.y = stageStart.y + (e.globalY - panStart.y);
+      if (isPanning) {
+        app.stage.x = stageStart.x + (e.globalX - panStart.x);
+        app.stage.y = stageStart.y + (e.globalY - panStart.y);
+      }
+      // Forward to measurement tool when in measure mode
+      if (measurementToolRef.current && measurementToolRef.current.getMode() !== 'none') {
+        const local = app.stage.toLocal({ x: e.globalX, y: e.globalY });
+        measurementToolRef.current.updateMeasure(local.x, local.y);
+      }
     });
 
     app.stage.on('rightup', () => { isPanning = false; });
+    app.stage.on('rightupoutside', () => { isPanning = false; });
+
+    // Measurement tool: left click start/end
+    app.stage.on('pointerdown', (e: PIXI.FederatedPointerEvent) => {
+      if (e.button !== 0) return;
+      if (!measurementToolRef.current) return;
+      if (measurementToolRef.current.getMode() === 'none') return;
+      const local = app.stage.toLocal({ x: e.globalX, y: e.globalY });
+      measurementToolRef.current.startMeasure(local.x, local.y);
+    });
+
+    app.stage.on('pointerup', (e: PIXI.FederatedPointerEvent) => {
+      if (e.button !== 0) return;
+      measurementToolRef.current?.endMeasure();
+    });
     app.stage.on('rightupoutside', () => { isPanning = false; });
 
     // Zoom with wheel
@@ -94,6 +145,10 @@ export function VttCanvas() {
 
     return () => {
       app.destroy(true, { children: true });
+      lightingRendererRef.current?.destroy();
+      lightingRendererRef.current = null;
+      fogRendererRef.current?.destroy();
+      fogRendererRef.current = null;
       appRef.current = null;
       layersRef.current = null;
       tokenSpritesRef.current.clear();
@@ -158,32 +213,73 @@ export function VttCanvas() {
     }
   }, [roomState?.tokens, selectedTokenId]);
 
-  // ─── Render fog ─────────────────────────────────────────────────────────────
+  // ─── Render fog + lighting (Fase 02 advanced) ────────────────────────────────
   useEffect(() => {
-    if (!layersRef.current || !roomState) return;
+    if (!layersRef.current || !roomState || !appRef.current) return;
     const { fog } = layersRef.current;
-    fog.clear();
-
-    if (!showFog) return;
-
     const map = roomState.map;
-    fog.beginFill(FOG_COLOR, FOG_ALPHA);
-    fog.drawRect(0, 0, map.width, map.height);
-    fog.endFill();
 
-    // Cut out revealed areas
-    fog.beginHole();
-    for (const area of roomState.fog.revealedAreas) {
-      const polygon = JSON.parse(area.polygon) as Array<{ x: number; y: number }>;
-      if (polygon.length < 3) continue;
-      fog.moveTo(polygon[0]!.x, polygon[0]!.y);
-      for (let i = 1; i < polygon.length; i++) {
-        fog.lineTo(polygon[i]!.x, polygon[i]!.y);
+    // ── Legacy simple fog (fallback when advanced renderers not ready) ──
+    fog.clear();
+    if (showFog && !fogRendererRef.current) {
+      fog.beginFill(FOG_COLOR, FOG_ALPHA);
+      fog.drawRect(0, 0, map.width, map.height);
+      fog.endFill();
+      fog.beginHole();
+      for (const area of roomState.fog.revealedAreas) {
+        const polygon = JSON.parse(area.polygon) as Array<{ x: number; y: number }>;
+        if (polygon.length < 3) continue;
+        fog.moveTo(polygon[0]!.x, polygon[0]!.y);
+        for (let i = 1; i < polygon.length; i++) fog.lineTo(polygon[i]!.x, polygon[i]!.y);
+        fog.closePath();
       }
-      fog.closePath();
+      fog.endHole();
     }
-    fog.endHole();
-  }, [roomState?.fog, showFog]);
+
+    // ── Advanced FogOfWarRenderer (Fase 02) ──
+    if (fogRendererRef.current && appRef.current && showFog) {
+      const cols = Math.ceil(map.width / GRID_SIZE_PX);
+      const rows = Math.ceil(map.height / GRID_SIZE_PX);
+      // Re-init only on map change
+      fogRendererRef.current.init(cols, rows, GRID_SIZE_PX, appRef.current);
+
+      // Reveal circles around player tokens
+      const playerTokens = Object.values(roomState.tokens).filter((t) => t.isPlayerToken);
+      for (const token of playerTokens) {
+        const visionPx = (token.visionRadius ?? 9) / CELL_REAL_M * GRID_SIZE_PX;
+        fogRendererRef.current.revealCircle(token.x, token.y, visionPx);
+      }
+      fogRendererRef.current.setVisible(showFog);
+    } else {
+      fogRendererRef.current?.setVisible(false);
+    }
+
+    // ── Advanced LightingRenderer (Fase 02) ──
+    if (lightingRendererRef.current && roomState.lights) {
+      lightingRendererRef.current.setMapSize(map.width, map.height);
+      const walls = (roomState.walls ?? []).filter((w: { blocksLight: boolean }) => w.blocksLight);
+      // The scene result would come from vtt-engine-service in prod
+      // For now, render ambient darkness with light sources from room state
+      lightingRendererRef.current.render(
+        { lightResults: [], ambientColor: { r: 0, g: 0, b: 0, a: 0 }, computeTimeMs: 0 },
+        roomState.ambientLight ?? 0.88,
+      );
+    }
+  }, [roomState?.fog, roomState?.tokens, roomState?.lights, showFog]);
+
+  // ─── Sync toolMode with MeasurementTool ───────────────────────────────────
+  useEffect(() => {
+    if (!measurementToolRef.current) return;
+    if (toolMode === 'measure') {
+      measurementToolRef.current.setMode('line');
+    } else if (toolMode === 'measure_circle') {
+      measurementToolRef.current.setMode('circle');
+    } else if (toolMode === 'measure_cone') {
+      measurementToolRef.current.setMode('cone');
+    } else {
+      measurementToolRef.current.setMode('none');
+    }
+  }, [toolMode]);
 
   // ─── Token event handlers ───────────────────────────────────────────────────
   const attachTokenEvents = useCallback(

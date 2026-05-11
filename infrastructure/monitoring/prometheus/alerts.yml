@@ -1,0 +1,223 @@
+groups:
+  # ─── Service Availability ────────────────────────────────────────────────────
+  - name: service_availability
+    interval: 30s
+    rules:
+      - alert: ServiceDown
+        expr: up{job=~"vtt-.+"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.job }} in namespace {{ $labels.namespace }} has been down for > 1 minute."
+          runbook: "https://runbooks.vtt-platform.com/service-down"
+
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)
+            /
+            sum(rate(http_requests_total[5m])) by (job)
+          ) > 0.01
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.job }}."
+
+      - alert: HighLatencyP95
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job)) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "P95 latency > 500ms on {{ $labels.job }}"
+          description: "P95 request duration is {{ $value | humanizeDuration }} on {{ $labels.job }}."
+
+      - alert: CriticalLatencyP99
+        expr: histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job)) > 2
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "P99 latency > 2s on {{ $labels.job }}"
+
+  # ─── Realtime / WebSocket ─────────────────────────────────────────────────────
+  - name: realtime
+    interval: 15s
+    rules:
+      - alert: HighActiveRooms
+        expr: colyseus_rooms_active > 150
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High active room count: {{ $value }}"
+          description: "Consider scaling realtime-gateway-service."
+
+      - alert: WebSocketConnectionErrors
+        expr: rate(colyseus_connection_errors_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "WebSocket connection errors spike"
+
+      - alert: RealtimeSyncLatency
+        expr: histogram_quantile(0.95, rate(colyseus_patch_broadcast_duration_seconds_bucket[5m])) > 0.1
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Realtime sync P95 > 100ms — SLO breach risk"
+          description: "State sync latency is {{ $value | humanizeDuration }}. Target: <100ms P95."
+
+  # ─── Database ─────────────────────────────────────────────────────────────────
+  - name: databases
+    rules:
+      - alert: PostgresConnectionsHigh
+        expr: pg_stat_activity_count > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL connections > 80"
+
+      - alert: MongoDBSlowQueries
+        expr: rate(mongodb_op_counters_total{type="query"}[5m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MongoDB query rate exceeds 1000/s on {{ $labels.instance }}"
+
+      - alert: RedisMemoryHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory usage > 80%"
+
+      - alert: RedisEvictions
+        expr: rate(redis_evicted_keys_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis is evicting keys — consider increasing memory"
+
+  # ─── Kubernetes Resources ────────────────────────────────────────────────────
+  - name: kubernetes
+    rules:
+      - alert: PodCrashLooping
+        expr: |
+          increase(kube_pod_container_status_restarts_total{namespace=~"vtt-.+"}[15m]) > 3
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Pod {{ $labels.pod }} crash looping"
+          description: "{{ $labels.container }} in {{ $labels.pod }} restarted {{ $value | printf \"%.0f\" }} times in 15m."
+
+      - alert: HighCPU
+        expr: |
+          (
+            sum(rate(container_cpu_usage_seconds_total{namespace=~"vtt-.+", container!=""}[5m])) by (pod, namespace)
+            /
+            sum(kube_pod_container_resource_limits{resource="cpu", namespace=~"vtt-.+"}) by (pod, namespace)
+          ) > 0.85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU > 85% on {{ $labels.pod }}"
+
+      - alert: HighMemory
+        expr: |
+          (
+            sum(container_memory_working_set_bytes{namespace=~"vtt-.+", container!=""}) by (pod, namespace)
+            /
+            sum(kube_pod_container_resource_limits{resource="memory", namespace=~"vtt-.+"}) by (pod, namespace)
+          ) > 0.90
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Memory > 90% on {{ $labels.pod }} — OOM risk"
+
+      - alert: HPAMaxReplicas
+        expr: kube_horizontalpodautoscaler_status_current_replicas == kube_horizontalpodautoscaler_spec_max_replicas
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HPA {{ $labels.horizontalpodautoscaler }} at max replicas"
+          description: "Service may be capacity-constrained. Consider raising maxReplicas."
+
+  # ─── Business Metrics ─────────────────────────────────────────────────────────
+  - name: business
+    interval: 60s
+    rules:
+      - alert: DiceRollAnomalyDetected
+        expr: |
+          (
+            sum(rate(vtt_dice_rolls_total[5m])) /
+            sum(rate(vtt_dice_rolls_total[1h] offset 1h))
+          ) > 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Dice roll rate 3× above baseline — possible abuse"
+          description: "Current rate: {{ $value | humanize }} rolls/s. Potential cheating or DoS."
+
+      - alert: CompendiumSearchErrors
+        expr: |
+          rate(http_requests_total{job="compendium-service", status=~"5.."}[5m]) > 5
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Compendium service returning 5xx errors"
+
+      - alert: AuthServiceDegraded
+        expr: |
+          histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="identity-service", handler="/v1/auth/token"}[5m])) > 0.3
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Auth token endpoint P95 > 300ms — login impacted"
+
+  # ─── Security ─────────────────────────────────────────────────────────────────
+  - name: security
+    rules:
+      - alert: RateLimitSpike
+        expr: rate(nginx_ingress_controller_requests{status="429"}[5m]) > 50
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Rate limit spike: > 50 429s/s — possible brute force"
+
+      - alert: AuthFailureSpike
+        expr: rate(vtt_auth_failures_total[5m]) > 20
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Auth failures > 20/s — possible credential stuffing"
+
+      - alert: UnexpectedAdminAccess
+        expr: |
+          increase(vtt_admin_actions_total{action!~"login|logout|list"}[10m]) > 10
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Unusual admin action volume"
+          description: "{{ $value | printf \"%.0f\" }} admin actions in 10m. Investigate immediately."

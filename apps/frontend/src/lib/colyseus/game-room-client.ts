@@ -1,8 +1,8 @@
 import { Client, Room } from 'colyseus.js';
+import type { AnyCommand } from '../../../apps/realtime-gateway-service/src/commands/game.commands';
 
-// Type-only import - this should come from a shared types package
-// For now, defining locally to avoid cross-workspace dependencies
-export type AnyCommand = Record<string, any>;
+// Re-export command types for use in components
+export type { AnyCommand };
 
 export interface RoomChatMessage {
   id: string;

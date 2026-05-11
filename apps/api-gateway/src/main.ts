@@ -63,25 +63,19 @@ async function bootstrap(): Promise<void> {
       });
     }
 
-    const proxyOptions: any = {
+    await app.register(httpProxy, {
       upstream: route.upstream,
       prefix: route.prefix,
       rewritePrefix: route.prefix,
+      preHandler: route.requiresAuth ? jwtMiddleware : undefined,
       httpMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       replyOptions: {
-        rewriteRequestHeaders: ((_req: any, headers: any) => ({
+        rewriteRequestHeaders: (_, headers) => ({
           ...headers,
           'x-forwarded-by': 'vtt-api-gateway',
-        })) as any,
+        }),
       },
-    };
-
-    // Only add preHandler if authentication is required
-    if (route.requiresAuth) {
-      proxyOptions.preHandler = jwtMiddleware;
-    }
-
-    await app.register(httpProxy, proxyOptions);
+    });
   }
 
   // ─── Health endpoint ─────────────────────────────────────────────────────
