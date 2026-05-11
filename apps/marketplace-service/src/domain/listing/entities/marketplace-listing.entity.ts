@@ -39,31 +39,49 @@ export interface ListingReview {
   updatedAt: Date;
 }
 
+export interface CreateListingProps {
+  creatorId: string;
+  title: string;
+  description: string;
+  shortDescription?: string;
+  category: ListingCategory;
+  tags: string[];
+  system: string;
+  pricingModel: PricingModel;
+  priceInCentavos: number;
+  minPwyw?: number;
+  coverImageUrl?: string;
+  assets: ListingAsset[];
+  version: string;
+  changelog?: string;
+  publishedAt?: Date;
+}
+
 export interface ListingProps {
   id: string;
   creatorId: string;
   title: string;
-  slug: string;
+  slug: string | undefined;
   description: string;
-  shortDescription?: string;
+  shortDescription: string | undefined;
   category: ListingCategory;
   tags: string[];
   system: string;          // 'tormenta20' | 'dnd5e' | etc.
   pricingModel: PricingModel;
   priceInCentavos: number; // 0 for free
-  minPwyw?: number;
-  coverImageUrl?: string;
+  minPwyw: number | undefined;
+  coverImageUrl: string | undefined;
   assets: ListingAsset[];
   status: ListingStatus;
-  reviewNote?: string;     // Moderator notes
+  reviewNote: string | undefined;     // Moderator notes
   downloadCount: number;
   purchaseCount: number;
   totalRevenueCentavos: number;
   reviews: ListingReview[];
-  averageRating?: number;
+  averageRating: number | undefined;
   version: string;         // Semantic version of the content
-  changelog?: string;
-  publishedAt?: Date;
+  changelog: string | undefined;
+  publishedAt: Date | undefined;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -78,25 +96,25 @@ export class MarketplaceListing {
   readonly createdAt: Date;
 
   title: string;
-  slug: string;
+  slug: string | undefined;
   description: string;
-  shortDescription?: string;
+  shortDescription: string | undefined;
   tags: string[];
   pricingModel: PricingModel;
   priceInCentavos: number;
-  minPwyw?: number;
-  coverImageUrl?: string;
+  minPwyw: number | undefined;
+  coverImageUrl: string | undefined;
   assets: ListingAsset[];
   status: ListingStatus;
-  reviewNote?: string;
+  reviewNote: string | undefined;
   downloadCount: number;
   purchaseCount: number;
   totalRevenueCentavos: number;
   reviews: ListingReview[];
-  averageRating?: number;
+  averageRating: number | undefined;
   version: string;
-  changelog?: string;
-  publishedAt?: Date;
+  changelog: string | undefined;
+  publishedAt: Date | undefined;
   updatedAt: Date;
 
   private constructor(props: ListingProps) {
@@ -130,7 +148,7 @@ export class MarketplaceListing {
 
   // ─── Factory ─────────────────────────────────────────────────────────
 
-  static create(props: Omit<ListingProps, 'id' | 'status' | 'downloadCount' | 'purchaseCount' | 'totalRevenueCentavos' | 'reviews' | 'createdAt' | 'updatedAt'>): MarketplaceListing {
+  static create(props: CreateListingProps): MarketplaceListing {
     if (!props.title.trim()) throw new Error('Listing title is required');
     if (props.pricingModel === 'paid' && props.priceInCentavos < 100) {
       throw new Error('Paid listings must cost at least R$1,00 (100 centavos)');
@@ -138,6 +156,11 @@ export class MarketplaceListing {
     const now = new Date();
     return new MarketplaceListing({
       ...props,
+      shortDescription: props.shortDescription ?? undefined,
+      minPwyw: props.minPwyw ?? undefined,
+      coverImageUrl: props.coverImageUrl ?? undefined,
+      changelog: props.changelog ?? undefined,
+      publishedAt: props.publishedAt ?? undefined,
       id: generateId(),
       slug: MarketplaceListing.slugify(props.title),
       status: 'draft',
@@ -145,6 +168,8 @@ export class MarketplaceListing {
       purchaseCount: 0,
       totalRevenueCentavos: 0,
       reviews: [],
+      reviewNote: undefined,
+      averageRating: undefined,
       createdAt: now,
       updatedAt: now,
     });

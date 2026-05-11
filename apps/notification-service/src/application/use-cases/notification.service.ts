@@ -7,7 +7,7 @@ import {
   NotificationPayload,
   NotificationPreferences,
   DEFAULT_PREFERENCES,
-} from '../domain/notification/entities/notification.entity';
+} from '../../domain/notification/entities/notification.entity';
 
 // ─── In-memory stores (replace with Redis/PostgreSQL in production) ──────────
 const notificationStore = new Map<string, Notification[]>();          // userId → notifications
@@ -99,10 +99,10 @@ export class NotificationService {
 
   private async deliver(notification: Notification): Promise<void> {
     const deliveryResults = await Promise.allSettled(
-      notification.channels.map((ch) => this.deliverToChannel(ch, notification)),
+      notification.channels.map((ch: NotificationChannel) => this.deliverToChannel(ch, notification)),
     );
 
-    const anySuccess = deliveryResults.some((r) => r.status === 'fulfilled');
+    const anySuccess = deliveryResults.some((r: PromiseSettledResult<void>) => r.status === 'fulfilled');
     anySuccess ? notification.markDelivered() : notification.markFailed();
 
     this.logger.debug(

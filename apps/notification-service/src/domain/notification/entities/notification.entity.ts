@@ -35,15 +35,15 @@ export interface NotificationPayload {
 export interface NotificationProps {
   id: string;
   userId: string;           // recipient
-  senderId?: string;        // who triggered it (user or 'system')
+  senderId?: string | undefined;        // who triggered it (user or 'system')
   type: NotificationType;
   priority: NotificationPriority;
   channels: NotificationChannel[];
   status: NotificationStatus;
   payload: NotificationPayload;
-  expiresAt?: Date;
-  readAt?: Date;
-  deliveredAt?: Date;
+  expiresAt?: Date | undefined;
+  readAt?: Date | undefined;
+  deliveredAt?: Date | undefined;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -53,17 +53,17 @@ export interface NotificationProps {
 export class Notification {
   readonly id: string;
   readonly userId: string;
-  readonly senderId?: string;
+  readonly senderId?: string | undefined;
   readonly type: NotificationType;
   readonly priority: NotificationPriority;
   readonly channels: NotificationChannel[];
   readonly payload: NotificationPayload;
-  readonly expiresAt?: Date;
+  readonly expiresAt?: Date | undefined;
   readonly createdAt: Date;
 
   status: NotificationStatus;
-  readAt?: Date;
-  deliveredAt?: Date;
+  readAt?: Date | undefined;
+  deliveredAt?: Date | undefined;
   updatedAt: Date;
 
   private constructor(props: NotificationProps) {
@@ -152,11 +152,7 @@ export class Notification {
 
 export interface NotificationPreferences {
   userId: string;
-  channels: {
-    in_app: boolean;
-    email: boolean;
-    push: boolean;
-  };
+  channels: Partial<Record<NotificationChannel, boolean>>;
   types: Partial<Record<NotificationType, boolean>>;
   quietHours?: {
     enabled: boolean;

@@ -1,4 +1,4 @@
-import { MarketplaceListing } from '../../src/domain/listing/entities/marketplace-listing.entity';
+import { MarketplaceListing, CreateListingProps } from '../../src/domain/listing/entities/marketplace-listing.entity';
 
 function makeListingProps(overrides: Partial<Parameters<typeof MarketplaceListing.create>[0]> = {}) {
   return {
@@ -187,11 +187,14 @@ describe('MarketplaceListing', () => {
       ['pwyw', 0, 0, 'Pague o quanto quiser'],
       ['pwyw', 0, 500, 'Pague o quanto quiser (mín. R$5.00)'],
     ] as const)('%s plan with %d centavos shows "%s"', (pricingModel, price, minPwyw, expected) => {
-      const listing = MarketplaceListing.create(makeListingProps({
+      const overrides: Partial<CreateListingProps> = {
         pricingModel: pricingModel as any,
         priceInCentavos: price,
-        minPwyw,
-      }));
+      };
+      if (minPwyw !== undefined) {
+        overrides.minPwyw = minPwyw;
+      }
+      const listing = MarketplaceListing.create(makeListingProps(overrides));
       expect(listing.priceForDisplay).toBe(expected);
     });
   });

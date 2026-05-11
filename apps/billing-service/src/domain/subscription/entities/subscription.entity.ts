@@ -97,9 +97,9 @@ export interface SubscriptionProps {
   currentPeriodStart: Date;
   currentPeriodEnd: Date;
   cancelAtPeriodEnd: boolean;
-  trialEndsAt?: Date;
-  paymentMethodId?: string;
-  externalSubscriptionId?: string;  // Stripe/Pagar.me ID
+  trialEndsAt?: Date | undefined;
+  paymentMethodId?: string | undefined;
+  externalSubscriptionId?: string | undefined;  // Stripe/Pagar.me ID
   priceAtPurchaseCentavos: number;
   createdAt: Date;
   updatedAt: Date;
@@ -116,9 +116,9 @@ export class Subscription {
   currentPeriodStart: Date;
   currentPeriodEnd: Date;
   cancelAtPeriodEnd: boolean;
-  trialEndsAt?: Date;
-  paymentMethodId?: string;
-  externalSubscriptionId?: string;
+  trialEndsAt?: Date | undefined;
+  paymentMethodId?: string | undefined;
+  externalSubscriptionId?: string | undefined;
   priceAtPurchaseCentavos: number;
   updatedAt: Date;
 
