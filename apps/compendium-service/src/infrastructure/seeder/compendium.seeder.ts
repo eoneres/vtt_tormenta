@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { CompendiumEntry } from '../../domain/entry/entry.entity';
 import { IEntryRepository } from '../../domain/entry/entry.repository';
-import { ALL_T20_SEED_DATA } from './tormenta20.seed-data';
+import { ALL_T20_SEED_DATA_DEDUP } from './t20-seed-index';
 
 @Injectable()
 export class CompendiumSeederService implements OnApplicationBootstrap {
@@ -15,12 +15,12 @@ export class CompendiumSeederService implements OnApplicationBootstrap {
   }
 
   async seedTormenta20(): Promise<{ inserted: number; skipped: number }> {
-    this.logger.log(`Starting Tormenta20 seed with ${ALL_T20_SEED_DATA.length} entries...`);
+    this.logger.log(`Starting Tormenta20 seed with ${ALL_T20_SEED_DATA_DEDUP.length} entries (Sprint 8 complete compendium)...`);
 
     let inserted = 0;
     let skipped = 0;
 
-    for (const data of ALL_T20_SEED_DATA) {
+    for (const data of ALL_T20_SEED_DATA_DEDUP) {
       try {
         const slug = CompendiumEntry.slugify(data.name);
         const existing = await this.repo.findBySlug(slug, 'tormenta20');
