@@ -1,0 +1,161 @@
+{
+  "title": "VTT Platform — Overview",
+  "uid": "vtt-overview",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "tags": ["vtt", "platform"],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Active WebSocket Sessions",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 },
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "value": 0, "color": "green" }, { "value": 500, "color": "yellow" }, { "value": 1000, "color": "red" }] },
+          "unit": "short", "displayName": "Active Sessions"
+        }
+      },
+      "targets": [{ "expr": "sum(websocket_active_connections{namespace=\"vtt-prod\"})", "legendFormat": "Sessions" }]
+    },
+    {
+      "id": 2,
+      "title": "HTTP Error Rate (5xx)",
+      "type": "timeseries",
+      "gridPos": { "x": 4, "y": 0, "w": 10, "h": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "red", "mode": "fixed" },
+          "unit": "percentunit",
+          "thresholds": { "steps": [{ "value": 0, "color": "green" }, { "value": 0.05, "color": "red" }] }
+        }
+      },
+      "targets": [{
+        "expr": "sum(rate(http_requests_total{namespace=\"vtt-prod\",status=~\"5..\"}[5m])) by (service) / sum(rate(http_requests_total{namespace=\"vtt-prod\"}[5m])) by (service)",
+        "legendFormat": "{{service}}"
+      }]
+    },
+    {
+      "id": 3,
+      "title": "Requests / sec",
+      "type": "timeseries",
+      "gridPos": { "x": 14, "y": 0, "w": 10, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "targets": [{
+        "expr": "sum(rate(http_requests_total{namespace=\"vtt-prod\"}[1m])) by (service)",
+        "legendFormat": "{{service}}"
+      }]
+    },
+    {
+      "id": 4,
+      "title": "P95 Response Time",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 5 },
+      "fieldConfig": {
+        "defaults": { "unit": "s",
+          "thresholds": { "steps": [{ "value": 0, "color": "green" }, { "value": 1, "color": "yellow" }, { "value": 2, "color": "red" }] }
+        }
+      },
+      "targets": [{
+        "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{namespace=\"vtt-prod\"}[5m])) by (service, le))",
+        "legendFormat": "p95 {{service}}"
+      }]
+    },
+    {
+      "id": 5,
+      "title": "WebSocket P95 Latency",
+      "type": "gauge",
+      "gridPos": { "x": 12, "y": 4, "w": 6, "h": 5 },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "min": 0, "max": 200,
+          "thresholds": { "steps": [{ "value": 0, "color": "green" }, { "value": 100, "color": "yellow" }, { "value": 150, "color": "red" }] }
+        }
+      },
+      "targets": [{
+        "expr": "histogram_quantile(0.95, sum(rate(websocket_message_latency_seconds_bucket{namespace=\"vtt-prod\"}[2m])) by (le)) * 1000",
+        "legendFormat": "WS p95 ms"
+      }]
+    },
+    {
+      "id": 6,
+      "title": "Dice Rolls / sec",
+      "type": "stat",
+      "gridPos": { "x": 18, "y": 4, "w": 6, "h": 5 },
+      "fieldConfig": { "defaults": { "unit": "ops", "color": { "mode": "thresholds" }, "thresholds": { "steps": [{ "value": 0, "color": "green" }] } } },
+      "targets": [{ "expr": "sum(rate(dice_rolls_total{namespace=\"vtt-prod\"}[1m]))", "legendFormat": "Rolls/sec" }]
+    },
+    {
+      "id": 7,
+      "title": "Pod CPU Usage by Service",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 9, "w": 12, "h": 5 },
+      "fieldConfig": { "defaults": { "unit": "percentunit" } },
+      "targets": [{
+        "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"vtt-prod\",container!=\"\",container!=\"POD\"}[5m])) by (pod) / sum(container_spec_cpu_quota{namespace=\"vtt-prod\",container!=\"\",container!=\"POD\"}) by (pod) * 100000",
+        "legendFormat": "{{pod}}"
+      }]
+    },
+    {
+      "id": 8,
+      "title": "Pod Memory Usage",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 9, "w": 12, "h": 5 },
+      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "targets": [{
+        "expr": "sum(container_memory_usage_bytes{namespace=\"vtt-prod\",container!=\"\",container!=\"POD\"}) by (pod)",
+        "legendFormat": "{{pod}}"
+      }]
+    },
+    {
+      "id": 9,
+      "title": "Service Availability (uptime)",
+      "type": "table",
+      "gridPos": { "x": 0, "y": 14, "w": 24, "h": 4 },
+      "targets": [{
+        "expr": "up{namespace=\"vtt-prod\"}",
+        "legendFormat": "{{job}}",
+        "instant": true
+      }],
+      "transformations": [{ "id": "organize", "options": { "renameByName": { "Value": "Up", "job": "Service" } } }]
+    },
+    {
+      "id": 10,
+      "title": "Active Campaigns",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 18, "w": 4, "h": 3 },
+      "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "fixed", "fixedColor": "purple" } } },
+      "targets": [{ "expr": "vtt_active_campaigns_total{namespace=\"vtt-prod\"}", "legendFormat": "Campaigns" }]
+    },
+    {
+      "id": 11,
+      "title": "Registered Users",
+      "type": "stat",
+      "gridPos": { "x": 4, "y": 18, "w": 4, "h": 3 },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "targets": [{ "expr": "vtt_users_total{namespace=\"vtt-prod\"}", "legendFormat": "Users" }]
+    },
+    {
+      "id": 12,
+      "title": "Revenue (today, BRL)",
+      "type": "stat",
+      "gridPos": { "x": 8, "y": 18, "w": 4, "h": 3 },
+      "fieldConfig": { "defaults": { "unit": "currencyBRL", "color": { "mode": "fixed", "fixedColor": "green" } } },
+      "targets": [{ "expr": "increase(billing_revenue_centavos_total{namespace=\"vtt-prod\"}[24h]) / 100", "legendFormat": "Revenue BRL" }]
+    },
+    {
+      "id": 13,
+      "title": "Marketplace Purchases (today)",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 18, "w": 4, "h": 3 },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "targets": [{ "expr": "increase(marketplace_purchases_total{namespace=\"vtt-prod\"}[24h])", "legendFormat": "Purchases" }]
+    }
+  ]
+}

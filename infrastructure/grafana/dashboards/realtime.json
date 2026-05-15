@@ -1,0 +1,90 @@
+{
+  "title": "VTT Platform — Realtime & Combat",
+  "uid": "vtt-realtime",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-30m", "to": "now" },
+  "tags": ["vtt", "realtime"],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Active Game Tables",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "thresholds" }, "thresholds": { "steps": [{ "value": 0, "color": "green" }] } } },
+      "targets": [{ "expr": "count(colyseus_room_connections{namespace=\"vtt-prod\",room_name=\"game_room\"} > 0)", "legendFormat": "Active Tables" }]
+    },
+    {
+      "id": 2,
+      "title": "WebSocket Connections",
+      "type": "timeseries",
+      "gridPos": { "x": 4, "y": 0, "w": 10, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "targets": [
+        { "expr": "sum(colyseus_room_connections{namespace=\"vtt-prod\"}) by (pod)", "legendFormat": "{{pod}}" },
+        { "expr": "sum(colyseus_room_connections{namespace=\"vtt-prod\"})", "legendFormat": "Total" }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Messages / sec (in/out)",
+      "type": "timeseries",
+      "gridPos": { "x": 14, "y": 0, "w": 10, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "msgps" } },
+      "targets": [
+        { "expr": "sum(rate(colyseus_messages_received_total{namespace=\"vtt-prod\"}[1m]))", "legendFormat": "In" },
+        { "expr": "sum(rate(colyseus_messages_sent_total{namespace=\"vtt-prod\"}[1m]))", "legendFormat": "Out" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "WebSocket Message Latency",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 5 },
+      "fieldConfig": { "defaults": { "unit": "ms" } },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum(rate(websocket_message_latency_seconds_bucket{namespace=\"vtt-prod\"}[2m])) by (le)) * 1000", "legendFormat": "p50" },
+        { "expr": "histogram_quantile(0.95, sum(rate(websocket_message_latency_seconds_bucket{namespace=\"vtt-prod\"}[2m])) by (le)) * 1000", "legendFormat": "p95" },
+        { "expr": "histogram_quantile(0.99, sum(rate(websocket_message_latency_seconds_bucket{namespace=\"vtt-prod\"}[2m])) by (le)) * 1000", "legendFormat": "p99" }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Tables in Combat vs Exploration",
+      "type": "piechart",
+      "gridPos": { "x": 12, "y": 4, "w": 6, "h": 5 },
+      "targets": [
+        { "expr": "count(colyseus_room_phase{namespace=\"vtt-prod\",phase=\"combat\"} == 1)", "legendFormat": "Combat" },
+        { "expr": "count(colyseus_room_phase{namespace=\"vtt-prod\",phase=\"exploration\"} == 1)", "legendFormat": "Exploration" }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Dice Rolls by Type",
+      "type": "bargauge",
+      "gridPos": { "x": 18, "y": 4, "w": 6, "h": 5 },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "targets": [{ "expr": "sum(increase(dice_rolls_total{namespace=\"vtt-prod\"}[5m])) by (dice_type)", "legendFormat": "{{dice_type}}", "instant": true }]
+    },
+    {
+      "id": 7,
+      "title": "Token Movements / min",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 9, "w": 12, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "targets": [{ "expr": "sum(rate(vtt_token_moves_total{namespace=\"vtt-prod\"}[1m])) * 60", "legendFormat": "Moves/min" }]
+    },
+    {
+      "id": 8,
+      "title": "VTT Engine Raycasting Time",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 9, "w": 12, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "ms" } },
+      "targets": [{
+        "expr": "histogram_quantile(0.95, sum(rate(vtt_raycasting_duration_seconds_bucket{namespace=\"vtt-prod\"}[2m])) by (le)) * 1000",
+        "legendFormat": "p95 raycast ms"
+      }]
+    }
+  ]
+}

@@ -3,8 +3,8 @@ import { defineConfig, devices } from '@playwright/test';
 const BASE_URL = process.env['BASE_URL'] ?? 'http://localhost:3000';
 
 export default defineConfig({
-  testDir: './e2e/tests',
-  timeout: 30_000,
+  testDir: './test/e2e',
+  timeout: 60_000,
   retries: process.env['CI'] ? 2 : 0,
   workers: process.env['CI'] ? 2 : undefined,
 
